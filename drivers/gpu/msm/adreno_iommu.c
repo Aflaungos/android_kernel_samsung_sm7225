@@ -428,8 +428,7 @@ static int _set_pagetable_gpu(struct adreno_ringbuffer *rb,
 			struct kgsl_pagetable *new_pt)
 {
 	struct adreno_device *adreno_dev = ADRENO_RB_DEVICE(rb);
-	unsigned int link[PAGE_SIZE / sizeof(unsigned int)];
-	unsigned int *cmds = link;
+	unsigned int *link = NULL, count;
 	int result;
 
 	/* If we are in a fault the MMU will be reset soon */

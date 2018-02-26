@@ -390,7 +390,7 @@ SYSCALL_DEFINE0(sync)
 	return 0;
 }
 
-void emergency_sync_synchronous(void) {
+void emergency_sync_synchronous(void)
 {
 	int nowait = 0;
 

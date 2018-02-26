@@ -288,9 +288,9 @@ static ssize_t kernfs_fop_write(struct file *file, const char __user *user_buf,
 	}
 
 	buf = of->prealloc_buf;
-	if (buf)
+	if (buf) {
 		mutex_lock(&of->prealloc_mutex);
-	else
+	} else {
 		if (!buf) {
 			if (len < ARRAY_SIZE(buf_onstack)) {
 				buf = buf_onstack;
