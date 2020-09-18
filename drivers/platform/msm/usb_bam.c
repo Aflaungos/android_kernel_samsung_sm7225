@@ -24,7 +24,7 @@
 #define TIME_BUF_LEN  17
 #define DBG_EVENT_LEN  143
 
-#define ENABLE_EVENT_LOG 1
+#define ENABLE_EVENT_LOG 0
 
 #define USB_BAM_NR_PORTS	4
 
@@ -38,27 +38,9 @@ MODULE_PARM_DESC(enable_event_log, "enable event logging in debug buffer");
 #define LOGLEVEL_DEBUG 7
 #define LOGLEVEL_ERR 3
 
-#define log_event(log_level, x...)					\
-do {									\
-	unsigned long flags;						\
-	char *buf;							\
-	if (log_level == LOGLEVEL_DEBUG)				\
-		pr_debug(x);						\
-	else if (log_level == LOGLEVEL_ERR)				\
-		pr_err(x);						\
-	if (enable_event_log) {						\
-		write_lock_irqsave(&usb_bam_dbg.lck, flags);		\
-		buf = usb_bam_dbg.buf[usb_bam_dbg.idx];			\
-		put_timestamp(buf);					\
-		snprintf(&buf[TIME_BUF_LEN - 1], DBG_EVENT_LEN, x);	\
-		usb_bam_dbg.idx = (usb_bam_dbg.idx + 1) % DBG_MAX_MSG;	\
-		write_unlock_irqrestore(&usb_bam_dbg.lck, flags);	\
-	}								\
-} while (0)
-
-#define log_event_none(x, ...) log_event(LOGLEVEL_NONE, x, ##__VA_ARGS__)
-#define log_event_dbg(x, ...) log_event(LOGLEVEL_DEBUG, x, ##__VA_ARGS__)
-#define log_event_err(x, ...) log_event(LOGLEVEL_ERR, x, ##__VA_ARGS__)
+#define log_event_none(x, ...)
+#define log_event_dbg(x, ...)
+#define log_event_err(x, ...)
 
 enum usb_bam_event_type {
 	USB_BAM_EVENT_WAKEUP_PIPE = 0,	/* Wake a pipe */
