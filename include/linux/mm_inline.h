@@ -304,8 +304,10 @@ static inline bool lru_gen_del_page(struct lruvec *lruvec, struct page *page, bo
 #endif /* CONFIG_LRU_GEN */
 
 static __always_inline void add_page_to_lru_list(struct page *page,
-				struct lruvec *lruvec, enum lru_list lru)
+				struct lruvec *lruvec)
 {
+	enum lru_list lru = page_lru(page);
+
 	if (lru_gen_add_page(lruvec, page, false))
 		return;
 
@@ -314,8 +316,10 @@ static __always_inline void add_page_to_lru_list(struct page *page,
 }
 
 static __always_inline void add_page_to_lru_list_tail(struct page *page,
-				struct lruvec *lruvec, enum lru_list lru)
+				struct lruvec *lruvec)
 {
+	enum lru_list lru = page_lru(page);
+
 	if (lru_gen_add_page(lruvec, page, true))
 		return;
 
