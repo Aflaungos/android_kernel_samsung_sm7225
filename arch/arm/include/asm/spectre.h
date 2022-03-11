@@ -35,6 +35,4 @@ static inline void spectre_v2_update_state(unsigned int state,
 
 int spectre_bhb_update_vectors(unsigned int method);
 
-int spectre_bhb_update_vectors(unsigned int method);
-
 #endif
