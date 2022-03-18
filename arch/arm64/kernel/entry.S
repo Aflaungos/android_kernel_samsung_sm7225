@@ -83,10 +83,8 @@
 	.else
 	mov	x30, xzr
 	.endif
-.Lskip_tramp_vectors_cleanup\@:	
+.Lskip_tramp_vectors_cleanup\@:
 	.endif
-
-
 
 	sub	sp, sp, #S_FRAME_SIZE
 #ifdef CONFIG_VMAP_STACK
@@ -1056,7 +1054,6 @@ alternative_insn isb, nop, ARM64_WORKAROUND_QCOM_FALKOR_E1003
 	tramp_data_read_var	x30, vectors
 	prfm	plil1strm, [x30, #(1b - \vector_start)]
 	msr	vbar_el1, x30
-
 	isb
 	.else
 	ldr	x30, =vectors
