@@ -33,6 +33,7 @@ enum arm64_bp_harden_el1_vectors {
 	 * canonical vectors.
 	 */
 	EL1_VECTOR_BHB_FW,
+
 	/*
 	 * Use the ClearBHB instruction, before branching to the canonical
 	 * vectors.
