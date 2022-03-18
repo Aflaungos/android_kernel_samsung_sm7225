@@ -1167,16 +1167,15 @@ __entry_tramp_data_this_cpu_vector:
 	tramp_ventry	.Lvector_start\@, 32, 0, \bhb
 	.endr
 	.endm
-	
-/* The order must match tramp_vecs and the arm64_bp_harden_el1_vectors enum. */	
 
+/* The order must match tramp_vecs and the arm64_bp_harden_el1_vectors enum. */
 	.pushsection ".entry.text", "ax"
 	.align	11
 ENTRY(__bp_harden_el1_vectors)
 #ifdef CONFIG_MITIGATE_SPECTRE_BRANCH_HISTORY
 	generate_el1_vector	bhb=BHB_MITIGATION_LOOP
 	generate_el1_vector	bhb=BHB_MITIGATION_FW
-	generate_el1_vector	bhb=BHB_MITIGATION_INSN	
+	generate_el1_vector	bhb=BHB_MITIGATION_INSN
 #endif /* CONFIG_MITIGATE_SPECTRE_BRANCH_HISTORY */
 END(__bp_harden_el1_vectors)
 	.popsection
