@@ -904,7 +904,7 @@ const struct arm64_cpu_capabilities arm64_errata[] = {
 		.type = ARM64_CPUCAP_LOCAL_CPU_ERRATUM,
 		.matches = is_spectre_bhb_affected,
 		.cpu_enable = spectre_bhb_enable_mitigation,
-	},	
+	},
 #ifdef CONFIG_ARM64_ERRATUM_1188873
 	{
 		.desc = "ARM erratum 1188873",
@@ -1038,7 +1038,6 @@ static void update_mitigation_state(enum mitigation_state *oldp,
  *   software mitigation in the vectors is needed.
  * - Has CSV2.3, so is unaffected.
  */
-
 static enum mitigation_state spectre_bhb_state;
 
 enum mitigation_state arm64_get_spectre_bhb_state(void)
