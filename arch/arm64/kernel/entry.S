@@ -70,9 +70,7 @@
 
 	.macro kernel_ventry, el, label, regsize = 64
 	.align 7
-.Lventry_start\@:	
-
-
+.Lventry_start\@:
 	.if	\el == 0
 	/*
 	 * This must be the first instruction of the EL0 vector entries. It is
@@ -134,7 +132,7 @@
 	mrs	x0, tpidrro_el0
 #endif
 	b	el\()\el\()_\label
-.org .Lventry_start\@ + 128	// Did we overflow the ventry slot?	
+.org .Lventry_start\@ + 128	// Did we overflow the ventry slot?
 	.endm
 
 	.macro tramp_alias, dst, sym, tmp
@@ -1075,7 +1073,7 @@ alternative_insn isb, nop, ARM64_WORKAROUND_QCOM_FALKOR_E1003
 	
 	add	x30, x30, #(1b - \vector_start + 4)	
 	ret
-.org 1b + 128	// Did we overflow the ventry slot?	
+.org 1b + 128	// Did we overflow the ventry slot?
 	.endm
 
 	.macro tramp_exit, regsize = 64
