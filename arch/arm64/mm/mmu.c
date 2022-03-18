@@ -638,8 +638,13 @@ early_param("rodata", parse_rodata);
 #ifdef CONFIG_UNMAP_KERNEL_AT_EL0
 static int __init map_entry_trampoline(void)
 {
+<<<<<<< HEAD
 	int i;	
 	
+=======
+	int i;
+
+>>>>>>> 22fdfcf1c2ce (arm64: entry: Allow the trampoline text to occupy multiple pages)
 	pgprot_t prot = rodata_enabled ? PAGE_KERNEL_ROX : PAGE_KERNEL_EXEC;
 	phys_addr_t pa_start = __pa_symbol(__entry_tramp_text_start);
 
