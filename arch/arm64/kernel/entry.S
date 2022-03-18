@@ -1009,7 +1009,7 @@ alternative_else_nop_endif
 #else
 	ldr	\dst, =\var
 #endif
-	.endm	
+	.endm
 
 #define BHB_MITIGATION_NONE	0
 #define BHB_MITIGATION_LOOP	1
@@ -1295,7 +1295,6 @@ ENDPROC(__sdei_asm_exit_trampoline)
 NOKPROBE(__sdei_asm_exit_trampoline)
 	.ltorg
 .popsection		// .entry.tramp.text
-
 #endif /* CONFIG_UNMAP_KERNEL_AT_EL0 */
 
 /*
