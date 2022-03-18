@@ -26,6 +26,7 @@
 #include <linux/types.h>
 #include <linux/mm.h>
 #include <linux/cpu.h>
+
 #include <asm/cpu.h>
 
 #include <asm/cpufeature.h>
@@ -984,6 +985,12 @@ kpti_install_ng_mappings(const struct arm64_cpu_capabilities *__unused)
 
 		__this_cpu_write(this_cpu_vector, v);
 	}	
+
+	if (__this_cpu_read(this_cpu_vector) == vectors) {
+		const char *v = arm64_get_bp_hardening_vector(EL1_VECTOR_KPTI);
+
+		__this_cpu_write(this_cpu_vector, v);
+	}
 
 	if (kpti_applied)
 		return;
