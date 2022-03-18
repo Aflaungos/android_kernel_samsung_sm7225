@@ -1019,7 +1019,6 @@ alternative_else_nop_endif
 	.macro tramp_ventry, vector_start, regsize, kpti, bhb
 	.align	7
 1:
-
 	.if	\regsize == 64
 	msr	tpidrro_el0, x30	// Restored in kernel_ventry
 	.endif
