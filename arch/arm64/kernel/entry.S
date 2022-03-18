@@ -359,7 +359,6 @@ alternative_else_nop_endif
 	ldp	x24, x25, [sp, #16 * 12]
 	ldp	x26, x27, [sp, #16 * 13]
 	ldp	x28, x29, [sp, #16 * 14]
-
 	/*
 	 * ARCH_HAS_MEMBARRIER_SYNC_CORE rely on eret context synchronization
 	 * when returning from IPI handler, and when returning to user-space.
@@ -382,7 +381,7 @@ alternative_else_nop_endif
 #endif
 	.else
 	ldr	lr, [sp, #S_LR]
-	add	sp, sp, #S_FRAME_SIZE		// restore sp	
+	add	sp, sp, #S_FRAME_SIZE		// restore sp
 	eret
 	.endif
 	.endm
@@ -1088,7 +1087,7 @@ alternative_endif
 	.if	\regsize == 64
 	mrs	x29, far_el1
 	.endif
-	add	sp, sp, #S_FRAME_SIZE		// restore sp	
+	add	sp, sp, #S_FRAME_SIZE		// restore sp
 	eret
 	.endm
 
