@@ -440,7 +440,7 @@ int kvm_hvc_call_handler(struct kvm_vcpu *vcpu)
 				val = SMCCC_ARCH_WORKAROUND_RET_UNAFFECTED;
 				break;
 			}
-			break;		
+			break;
 		}
 		break;
 	default:
