@@ -90,7 +90,7 @@
 			   ARM_SMCCC_SMC_32,				\
 			   0, 0x3fff)
 
-#define SMCCC_ARCH_WORKAROUND_RET_UNAFFECTED	1			   
+#define SMCCC_ARCH_WORKAROUND_RET_UNAFFECTED	1
 
 #ifndef __ASSEMBLY__
 

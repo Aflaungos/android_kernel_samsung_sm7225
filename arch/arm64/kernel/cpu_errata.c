@@ -145,7 +145,7 @@ static void install_bp_hardening_cb(bp_hardening_cb_t fn,
 
 	__this_cpu_write(bp_hardening_data.hyp_vectors_slot, slot);
 	__this_cpu_write(bp_hardening_data.fn, fn);
-	__this_cpu_write(bp_hardening_data.template_start, hyp_vecs_start);	
+	__this_cpu_write(bp_hardening_data.template_start, hyp_vecs_start);
 	spin_unlock(&bp_lock);
 }
 #else
@@ -912,6 +912,13 @@ const struct arm64_cpu_capabilities arm64_errata[] = {
 		ERRATA_MIDR_RANGE_LIST(arm64_workaround_1188873_cpus),
 	},
 #endif
+	{
+		.desc = "Spectre-BHB",
+		.capability = ARM64_SPECTRE_BHB,
+		.type = ARM64_CPUCAP_LOCAL_CPU_ERRATUM,
+		.matches = is_spectre_bhb_affected,
+		.cpu_enable = spectre_bhb_enable_mitigation,
+	},
 #ifdef CONFIG_ARM64_ERRATUM_1463225
 	{
 		.desc = "ARM erratum 1463225",
@@ -1038,7 +1045,6 @@ static void update_mitigation_state(enum mitigation_state *oldp,
  *   software mitigation in the vectors is needed.
  * - Has CSV2.3, so is unaffected.
  */
-
 static enum mitigation_state spectre_bhb_state;
 
 enum mitigation_state arm64_get_spectre_bhb_state(void)
@@ -1173,10 +1179,8 @@ bool is_spectre_bhb_affected(const struct arm64_cpu_capabilities *entry,
 
 	if (supports_csv2p3(scope))
 		return false;
-	
 	if (supports_clearbhb(scope))
-		return true;	
-
+		return true;
 	if (spectre_bhb_loop_affected(scope))
 		return true;
 
@@ -1218,7 +1222,7 @@ static const char *kvm_bhb_get_vecs_end(const char *start)
 	else if (start == __spectre_bhb_loop_k32_start)
 		return __spectre_bhb_loop_k32_end;
 	else if (start == __spectre_bhb_clearbhb_start)
-		return __spectre_bhb_clearbhb_end;	
+		return __spectre_bhb_clearbhb_end;
 
 	return NULL;
 }
@@ -1280,8 +1284,8 @@ void spectre_bhb_enable_mitigation(const struct arm64_cpu_capabilities *entry)
 		state = SPECTRE_MITIGATED;
 	} else if (supports_clearbhb(SCOPE_LOCAL_CPU)) {
 		kvm_setup_bhb_slot(__spectre_bhb_clearbhb_start);
-		this_cpu_set_vectors(EL1_VECTOR_BHB_CLEAR_INSN);	
-		
+		this_cpu_set_vectors(EL1_VECTOR_BHB_CLEAR_INSN);
+
 		state = SPECTRE_MITIGATED;
 	} else if (spectre_bhb_loop_affected(SCOPE_LOCAL_CPU)) {
 		switch (spectre_bhb_loop_affected(SCOPE_SYSTEM)) {

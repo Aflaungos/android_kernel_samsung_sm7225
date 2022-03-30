@@ -148,6 +148,13 @@
 	.endm
 
 /*
+ * Clear Branch History instruction
+ */
+	.macro clearbhb
+	hint	#22
+	.endm
+
+/*
  * Sanitise a 64-bit bounded index wrt speculation, returning zero if out
  * of bounds.
  */
@@ -738,7 +745,7 @@ USER(\label, ic	ivau, \tmp2)			// invalidate I line PoU
 	.previous
 .Lyield_out_\@ :
 	.endm
-	
+
 	.macro __mitigate_spectre_bhb_loop      tmp
 #ifdef CONFIG_MITIGATE_SPECTRE_BRANCH_HISTORY
 alternative_cb  spectre_bhb_patch_loop_iter
@@ -765,5 +772,5 @@ alternative_cb_end
 	ldp	x2, x3, [sp], #16
 	ldp	x0, x1, [sp], #16
 #endif /* CONFIG_MITIGATE_SPECTRE_BRANCH_HISTORY */
-	.endm	
+	.endm
 #endif	/* __ASM_ASSEMBLER_H */

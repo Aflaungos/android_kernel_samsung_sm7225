@@ -138,7 +138,7 @@ el1_hvc_guest:
 	cbz	w1, wa_epilogue
 
 	eor	w1, w1, #(ARM_SMCCC_ARCH_WORKAROUND_2 ^ \
-			  ARM_SMCCC_ARCH_WORKAROUND_3)			  
+			  ARM_SMCCC_ARCH_WORKAROUND_3)
 	cbnz	w1, el1_trap
 
 #ifdef CONFIG_ARM64_SSBD
