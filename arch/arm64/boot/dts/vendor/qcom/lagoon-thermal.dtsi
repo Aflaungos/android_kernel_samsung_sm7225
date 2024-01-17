@@ -1238,67 +1238,67 @@
 
 		trips {
 			modem_skin_trip0: modem-skin-trip0 {
-				temperature = <40000>;
+				temperature = <50000>;
 				hysteresis = <4000>;
 				type = "passive";
 			};
 
 			modem_skin_trip1: modem-skin-trip1 {
-				temperature = <41000>;
+				temperature = <50000>;
 				hysteresis = <4000>;
 				type = "passive";
 			};
 
 			skin_batt_trip0: batt-skin-trip0 {
-				temperature = <41000>;
+				temperature = <50000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
 
 			modem_skin_trip2: modem-skin-trip2 {
-				temperature = <42000>;
+				temperature = <50000>;
 				hysteresis = <4000>;
 				type = "passive";
 			};
 
 			gold_trip: gold-trip {
-				temperature = <43000>;
+				temperature = <70000>;
 				hysteresis = <0>;
 				type = "passive";
 			};
 
 			skin_batt_modem_trip: batt-modem-skin-trip {
-				temperature = <43000>;
+				temperature = <50000>;
 				hysteresis = <4000>;
 				type = "passive";
 			};
 
 			skin_batt_trip2: batt-skin-trip2 {
-				temperature = <45000>;
+				temperature = <50000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
 
 			gpu_skin_trip: gpu-skin-trip {
-				temperature = <45000>;
+				temperature = <50000>;
 				hysteresis = <3000>;
 				type = "passive";
 			};
 
 			skin_batt_trip3: batt-skin-trip3 {
-				temperature = <47000>;
+				temperature = <50000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
 
 			silver_trip: silver-trip {
-				temperature = <48000>;
+				temperature = <70000>;
 				hysteresis = <0>;
 				type = "passive";
 			};
 
 			skin_batt_trip4: batt-skin-trip4 {
-				temperature = <48000>;
+				temperature = <50000>;
 				hysteresis = <1000>;
 				type = "passive";
 			};
