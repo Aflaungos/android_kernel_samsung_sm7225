@@ -52,7 +52,8 @@ static DEFINE_SPINLOCK(suspend_lock);
 
 #define TAG "msm_adreno_tz: "
 
-static unsigned int adrenoboost = 10000;
+static unsigned int adrenoboost = 1;
+
 static u64 suspend_time;
 static u64 suspend_start;
 static unsigned long acc_total, acc_relative_busy;
@@ -97,7 +98,7 @@ static ssize_t adrenoboost_save(struct device *dev,
 {
 	int input;
 	sscanf(buf, "%d ", &input);
-	if (input < 0 || input > 50000) {
+	if (input < 0 || input > 3) {
 		adrenoboost = 0;
 	} else {
 		adrenoboost = input;
@@ -408,6 +409,14 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq)
 
 	*freq = stats->current_frequency;
 	priv->bin.total_time += stats->total_time;
+
+	// scale busy time up based on adrenoboost parameter, only if MIN_BUSY exceeded...
+	if ((unsigned int)(priv->bin.busy_time + stats.busy_time) >= MIN_BUSY) {
+		priv->bin.busy_time += stats.busy_time * (1 + (adrenoboost*3)/2);
+	} else {
+		priv->bin.busy_time += stats.busy_time;
+	}
+
 	priv->bin.busy_time += stats->busy_time;
 
 	if (stats->private_data)
