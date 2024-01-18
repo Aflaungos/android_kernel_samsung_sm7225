@@ -3939,7 +3939,7 @@ static struct spi_driver nvt_spi_driver = {
 #if IS_ENABLED(CONFIG_PM)
 		.pm = &nvt_dev_pm_ops,
 #endif
-
+		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
 	},
 };
 
