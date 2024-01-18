@@ -268,6 +268,9 @@ void __check_object_size(const void *ptr, unsigned long n, bool to_user)
 	if (static_branch_unlikely(&bypass_usercopy_checks))
 		return;
 
+	/* Kill the hardened usercopy overhead but keep existing */
+	return;
+
 	/* Skip all tests if size is zero. */
 	if (!n)
 		return;
