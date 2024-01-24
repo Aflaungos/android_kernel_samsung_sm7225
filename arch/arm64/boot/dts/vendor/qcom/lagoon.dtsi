@@ -325,7 +325,7 @@
 	};
 
 	chosen {
-		bootargs = "rcupdate.rcu_expedited=1 nosoftlockup mce=ignore_ce nodebugmon noirqdebug rcu_nocbs=0-7 kpti=off cgroup_disable=pressure";
+		bootargs = "rcupdate.rcu_expedited=1 nosoftlockup mce=ignore_ce nodebugmon noirqdebug rcupdate.rcu_normal_after_boot=1 quiet rcu_nocbs=0-7 kpti=off cgroup_disable=pressure";
 	};
 
 	soc: soc { };
