@@ -325,7 +325,7 @@
 	};
 
 	chosen {
-		bootargs = "androidboot.selinux=permissive rcupdate.rcu_expedited=1 rcu_nocbs=0-7 kpti=off cgroup_disable=pressure";
+		bootargs = "rcupdate.rcu_expedited=1 nosoftlockup mce=ignore_ce rcu_nocbs=0-7 kpti=off cgroup_disable=pressure";
 	};
 
 	soc: soc { };
