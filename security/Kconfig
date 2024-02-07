@@ -243,7 +243,6 @@ config STATIC_USERMODEHELPER_PATH
 	  specify an empty string here (i.e. "").
 
 source security/selinux/Kconfig
-source security/samsung/defex_lsm/Kconfig
 source security/smack/Kconfig
 source security/tomoyo/Kconfig
 source security/apparmor/Kconfig
@@ -303,12 +302,5 @@ config SDP_KEY_DUMP
 	Enabled only for eng and userdebug builds.
 
 source "security/Kconfig.hardening"
-source security/hdm/Kconfig
-
-source "security/samsung/defex_lsm/Kconfig" # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
-source "security/samsung/proca/Kconfig" # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
-source "security/samsung/proca/gaf/Kconfig" # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
-source "security/samsung/dsms/Kconfig" # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
-source "security/samsung/five/Kconfig" # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
 endmenu
 
