@@ -8,7 +8,6 @@
  */
 
 #include <linux/anon_inodes.h>
-#include <linux/debugfs.h>
 #include <linux/device.h>
 #include <linux/dma-buf.h>
 #include <linux/err.h>
@@ -1437,41 +1436,6 @@ static const struct file_operations debug_heap_fops = {
 	.release = single_release,
 };
 
-static int debug_shrink_set(void *data, u64 val)
-{
-	struct ion_heap *heap = data;
-	struct shrink_control sc;
-	int objs;
-
-	sc.gfp_mask = GFP_HIGHUSER;
-	sc.nr_to_scan = val;
-
-	if (!val) {
-		objs = heap->shrinker.count_objects(&heap->shrinker, &sc);
-		sc.nr_to_scan = objs;
-	}
-
-	heap->shrinker.scan_objects(&heap->shrinker, &sc);
-	return 0;
-}
-
-static int debug_shrink_get(void *data, u64 *val)
-{
-	struct ion_heap *heap = data;
-	struct shrink_control sc;
-	int objs;
-
-	sc.gfp_mask = GFP_HIGHUSER;
-	sc.nr_to_scan = 0;
-
-	objs = heap->shrinker.count_objects(&heap->shrinker, &sc);
-	*val = objs;
-	return 0;
-}
-
-DEFINE_SIMPLE_ATTRIBUTE(debug_shrink_fops, debug_shrink_get,
-			debug_shrink_set, "%llu\n");
-
 void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
 {
 	int ret;
@@ -1500,16 +1464,6 @@ void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
 	 */
 	plist_node_init(&heap->node, -heap->id);
 	plist_add(&heap->node, &dev->heaps);
-	debugfs_create_file(heap->name, 0664,
-			    dev->heaps_debug_root, heap,
-			    &debug_heap_fops);
-
-	if (heap->shrinker.count_objects && heap->shrinker.scan_objects) {
-		char debug_name[64];
-
-		snprintf(debug_name, 64, "%s_shrink", heap->name);
-		debugfs_create_file(debug_name, 0644, dev->heaps_debug_root,
-				    heap, &debug_shrink_fops);
 	}
 
 	dev->heap_cnt++;
@@ -1592,8 +1546,6 @@ struct ion_device *ion_device_create(void)
 		goto err_sysfs;
 	}
 
-	idev->debug_root = debugfs_create_dir("ion", NULL);
-	idev->heaps_debug_root = debugfs_create_dir("heaps", idev->debug_root);
 	WARN_ON(register_oom_notifier(&ion_oom_notifier));
 	idev->buffers = RB_ROOT;
 	mutex_init(&idev->buffer_lock);
