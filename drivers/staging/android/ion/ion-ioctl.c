@@ -44,7 +44,7 @@ static unsigned int ion_ioctl_dir(unsigned int cmd)
 
 long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
-	int ret = 0;
+	int ret;
 	unsigned int dir;
 	union ion_ioctl_arg data;
 
@@ -87,6 +87,8 @@ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	}
 	case ION_IOC_HEAP_QUERY:
 		ret = ion_query_heaps(&data.query);
+		if (ret)
+			return ret;
 		break;
 	case ION_IOC_PREFETCH:
 	{
@@ -123,5 +125,5 @@ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		if (copy_to_user((void __user *)arg, &data, _IOC_SIZE(cmd)))
 			return -EFAULT;
 	}
-	return ret;
+	return 0;
 }
