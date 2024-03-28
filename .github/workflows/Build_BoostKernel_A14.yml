@@ -1,0 +1,119 @@
+name: Build BoostKernel A14 with KernelSU
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 10 * * *"
+jobs:
+  build:
+    strategy:
+      matrix:
+        device: [m23xq]
+        
+    name: Build Kernel For ${{ matrix.device }}
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
+      CCACHE_NOHASHDIR: "true"
+      CCACHE_HARDLINK: "true"
+    
+    steps:
+      - name: Cleanup
+        uses: rokibhasansagar/slimhub_actions@main
+        
+      - name: Installing Dependencies
+        run: |
+          sudo apt update -y
+          sudo apt-get install -y lld binutils clang llvm zip flex bison libncurses-dev gawk  libiberty-dev autoconf kmod bc build-essential gcc libc6 curl libstdc++6 git wget libssl-dev cpio p7zip-full ccache
+          sudo apt clean
+          
+      - name: Setup kernel source
+        uses: actions/checkout@v4
+        with:
+          ref: lineage-21.0-BoostKernel
+          path: kernel-source
+
+      - name: Setup submodules
+        working-directory: kernel-source
+        run: git submodule update --init --recursive --depth 0
+        
+      - name: Cache Build Tools
+        id: cache-aosp-clang
+        uses: actions/cache@v4
+        with:
+          path: aosp-clang
+          key: aosp-clang  
+        
+      - name: Download Build Tools
+        if: steps.cache-aosp-clang.outputs.cache-hit != 'true'
+        run: |
+          git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 --depth=1 --single-branch --no-tags -b master aosp-clang/clang
+          git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android-14.0.0_r0.47 --depth=1 --single-branch --no-tags aosp-clang/aarch64-linux-android-4.9
+          
+      - name: Checkout Anykernel
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          repository: Aflaungos/AnyKernel3
+          ref: m23xq
+          path: anykernel
+
+      - name: Setup Ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: Build-BoostKernel-${{ matrix.device }}
+          save: ${{ github.event_name != 'pull_request' }}
+          max-size: 2G
+          
+      - name: Build Kernel
+        working-directory: kernel-source
+        run: |
+          CLANG="$GITHUB_WORKSPACE/aosp-clang/clang/bin"
+          GCC64="$GITHUB_WORKSPACE/aosp-clang/aarch64-linux-android-4.9/bin"
+          PATH=$CLANG:$GCC64:$PATH
+          export PATH
+          export ARCH=arm64
+          export CLANG_TRIPLE=aarch64-linux-gnu-
+          export KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
+          output_dir=out
+          date=$(date +"%Y%m%d%H%M")
+          export PATH="/usr/lib/ccache:$PATH"
+          echo "date=$date" >> $GITHUB_ENV
+          echo "Building kernel with $args"  
+          make -C $(pwd) O=out $KERNEL_MAKE_ENV CC="ccache clang" LLVM=1 LLVM_IAS=1 vendor/m23xq_eur_open_defconfig && make O=out $KERNEL_MAKE_ENV CC="ccache clang" LLVM=1 LLVM_IAS=1 -j$(grep -c ^processor /proc/cpuinfo)
+          
+      - name: Upload BoostKernel-${{ matrix.device }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: BoostKernel-${{ matrix.device }}
+          path: kernel-source/out/arch/arm64/boot/*
+          
+      - name: Prepare Anykernel
+        working-directory: anykernel
+        run: |
+          cp -f $GITHUB_WORKSPACE/kernel-source/out/arch/arm64/boot/Image .
+          ZIP_NAME="BoostKernel_${{ matrix.device }}"
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          zip -r "$ZIP_NAME.zip" *
+          mv "$ZIP_NAME.zip" $GITHUB_WORKSPACE
+          
+      - name: Upload Anykernel
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: anykernel/*
+      
+      - name: Release
+        if: success()
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "BoostKernel For ${{ matrix.device }}"
+          body_path: "INFO.txt"
+          files: |
+            ${{ env.ZIP_NAME }}.zip
+          tag_name: ${{ github.run_number }}-${{ github.ref }}-${{ matrix.device }}
+          
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          retain_days: 0
+          keep_minimum_runs: 2
