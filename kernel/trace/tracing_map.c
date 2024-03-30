@@ -574,12 +574,7 @@ __tracing_map_insert(struct tracing_map *map, void *key, bool lookup_only)
 				}
 
 				memcpy(elt->key, key, map->key_size);
-				/*
-				 * Ensure the initialization is visible and
-				 * publish the elt.
-				 */
-				smp_wmb();
-				WRITE_ONCE(entry->val, elt);
+				entry->val = elt;
 				atomic64_inc(&map->hits);
 
 				return entry->val;

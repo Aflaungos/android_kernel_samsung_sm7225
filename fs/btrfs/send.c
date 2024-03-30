@@ -6842,7 +6842,7 @@ long btrfs_ioctl_send(struct file *mnt_file, struct btrfs_ioctl_send_args *arg)
 	}
 
 	if (arg->flags & ~BTRFS_SEND_FLAG_MASK) {
-		ret = -EOPNOTSUPP;
+		ret = -EINVAL;
 		goto out;
 	}
 
