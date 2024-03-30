@@ -3837,14 +3837,6 @@ static void ffs_func_unbind(struct usb_configuration *c,
 	func->function.ss_descriptors = NULL;
 	func->function.ssp_descriptors = NULL;
 	func->interfaces_nums = NULL;
-
-<<<<<<< HEAD
-	ffs_event_add(ffs, FUNCTIONFS_UNBIND);
-
-	ffs_log("exit: state %d setup_state %d flag %lu", ffs->state,
-		ffs->setup_state, ffs->flags);
-=======
->>>>>>> 9dff4a5eaa51 (Merge tag 'v4.19.285' of https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux into 13.0-alioth)
 }
 
 static struct usb_function *ffs_alloc(struct usb_function_instance *fi)
