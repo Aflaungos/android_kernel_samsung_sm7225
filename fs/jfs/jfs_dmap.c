@@ -76,10 +76,10 @@
  */
 static void dbAllocBits(struct bmap * bmp, struct dmap * dp, s64 blkno,
 			int nblocks);
-static void dbSplit(dmtree_t *tp, int leafno, int splitsz, int newval, bool is_ctl);
-static int dbBackSplit(dmtree_t *tp, int leafno, bool is_ctl);
-static int dbJoin(dmtree_t *tp, int leafno, int newval, bool is_ctl);
-static void dbAdjTree(dmtree_t *tp, int leafno, int newval, bool is_ctl);
+static void dbSplit(dmtree_t * tp, int leafno, int splitsz, int newval);
+static int dbBackSplit(dmtree_t * tp, int leafno);
+static int dbJoin(dmtree_t * tp, int leafno, int newval);
+static void dbAdjTree(dmtree_t * tp, int leafno, int newval);
 static int dbAdjCtl(struct bmap * bmp, s64 blkno, int newval, int alloc,
 		    int level);
 static int dbAllocAny(struct bmap * bmp, s64 nblocks, int l2nb, s64 * results);
@@ -2184,7 +2184,7 @@ static int dbFreeDmap(struct bmap * bmp, struct dmap * dp, s64 blkno,
 		 * system.
 		 */
 		if (dp->tree.stree[word] == NOFREE)
-			dbBackSplit((dmtree_t *)&dp->tree, word, false);
+			dbBackSplit((dmtree_t *) & dp->tree, word);
 
 		dbAllocBits(bmp, dp, blkno, nblocks);
 	}
@@ -2270,7 +2270,7 @@ static void dbAllocBits(struct bmap * bmp, struct dmap * dp, s64 blkno,
 			 * the binary system of the leaves if need be.
 			 */
 			dbSplit(tp, word, BUDMIN,
-				dbMaxBud((u8 *)&dp->wmap[word]), false);
+				dbMaxBud((u8 *) & dp->wmap[word]));
 
 			word += 1;
 		} else {
@@ -2310,7 +2310,7 @@ static void dbAllocBits(struct bmap * bmp, struct dmap * dp, s64 blkno,
 				 * system of the leaves to reflect the current
 				 * allocation (size).
 				 */
-				dbSplit(tp, word, size, NOFREE, false);
+				dbSplit(tp, word, size, NOFREE);
 
 				/* get the number of dmap words handled */
 				nw = BUDSIZE(size, BUDMIN);
@@ -2417,7 +2417,7 @@ static int dbFreeBits(struct bmap * bmp, struct dmap * dp, s64 blkno,
 			/* update the leaf for this dmap word.
 			 */
 			rc = dbJoin(tp, word,
-				    dbMaxBud((u8 *)&dp->wmap[word]), false);
+				    dbMaxBud((u8 *) & dp->wmap[word]));
 			if (rc)
 				return rc;
 
@@ -2450,7 +2450,7 @@ static int dbFreeBits(struct bmap * bmp, struct dmap * dp, s64 blkno,
 
 				/* update the leaf.
 				 */
-				rc = dbJoin(tp, word, size, false);
+				rc = dbJoin(tp, word, size);
 				if (rc)
 					return rc;
 
@@ -2602,14 +2602,14 @@ dbAdjCtl(struct bmap * bmp, s64 blkno, int newval, int alloc, int level)
 		 * that it is at the front of a binary buddy system.
 		 */
 		if (oldval == NOFREE) {
-			rc = dbBackSplit((dmtree_t *)dcp, leafno, true);
+			rc = dbBackSplit((dmtree_t *) dcp, leafno);
 			if (rc)
 				return rc;
 			oldval = dcp->stree[ti];
 		}
-		dbSplit((dmtree_t *) dcp, leafno, dcp->budmin, newval, true);
+		dbSplit((dmtree_t *) dcp, leafno, dcp->budmin, newval);
 	} else {
-		rc = dbJoin((dmtree_t *) dcp, leafno, newval, true);
+		rc = dbJoin((dmtree_t *) dcp, leafno, newval);
 		if (rc)
 			return rc;
 	}
@@ -2638,7 +2638,7 @@ dbAdjCtl(struct bmap * bmp, s64 blkno, int newval, int alloc, int level)
 				 */
 				if (alloc) {
 					dbJoin((dmtree_t *) dcp, leafno,
-					       oldval, true);
+					       oldval);
 				} else {
 					/* the dbJoin() above might have
 					 * caused a larger binary buddy system
@@ -2648,9 +2648,9 @@ dbAdjCtl(struct bmap * bmp, s64 blkno, int newval, int alloc, int level)
 					 */
 					if (dcp->stree[ti] == NOFREE)
 						dbBackSplit((dmtree_t *)
-							    dcp, leafno, true);
+							    dcp, leafno);
 					dbSplit((dmtree_t *) dcp, leafno,
-						dcp->budmin, oldval, true);
+						dcp->budmin, oldval);
 				}
 
 				/* release the buffer and return the error.
@@ -2698,7 +2698,7 @@ dbAdjCtl(struct bmap * bmp, s64 blkno, int newval, int alloc, int level)
  *
  * serialization: IREAD_LOCK(ipbmap) or IWRITE_LOCK(ipbmap) held on entry/exit;
  */
-static void dbSplit(dmtree_t *tp, int leafno, int splitsz, int newval, bool is_ctl)
+static void dbSplit(dmtree_t * tp, int leafno, int splitsz, int newval)
 {
 	int budsz;
 	int cursz;
@@ -2720,7 +2720,7 @@ static void dbSplit(dmtree_t *tp, int leafno, int splitsz, int newval, bool is_c
 		while (cursz >= splitsz) {
 			/* update the buddy's leaf with its new value.
 			 */
-			dbAdjTree(tp, leafno ^ budsz, cursz, is_ctl);
+			dbAdjTree(tp, leafno ^ budsz, cursz);
 
 			/* on to the next size and buddy.
 			 */
@@ -2732,7 +2732,7 @@ static void dbSplit(dmtree_t *tp, int leafno, int splitsz, int newval, bool is_c
 	/* adjust the dmap tree to reflect the specified leaf's new
 	 * value.
 	 */
-	dbAdjTree(tp, leafno, newval, is_ctl);
+	dbAdjTree(tp, leafno, newval);
 }
 
 
@@ -2763,7 +2763,7 @@ static void dbSplit(dmtree_t *tp, int leafno, int splitsz, int newval, bool is_c
  *
  * serialization: IREAD_LOCK(ipbmap) or IWRITE_LOCK(ipbmap) held on entry/exit;
  */
-static int dbBackSplit(dmtree_t *tp, int leafno, bool is_ctl)
+static int dbBackSplit(dmtree_t * tp, int leafno)
 {
 	int budsz, bud, w, bsz, size;
 	int cursz;
@@ -2814,7 +2814,7 @@ static int dbBackSplit(dmtree_t *tp, int leafno, bool is_ctl)
 				 * system in two.
 				 */
 				cursz = leaf[bud] - 1;
-				dbSplit(tp, bud, cursz, cursz, is_ctl);
+				dbSplit(tp, bud, cursz, cursz);
 				break;
 			}
 		}
@@ -2842,7 +2842,7 @@ static int dbBackSplit(dmtree_t *tp, int leafno, bool is_ctl)
  *
  * RETURN VALUES: none
  */
-static int dbJoin(dmtree_t *tp, int leafno, int newval, bool is_ctl)
+static int dbJoin(dmtree_t * tp, int leafno, int newval)
 {
 	int budsz, buddy;
 	s8 *leaf;
@@ -2897,12 +2897,12 @@ static int dbJoin(dmtree_t *tp, int leafno, int newval, bool is_ctl)
 			if (leafno < buddy) {
 				/* leafno is the left buddy.
 				 */
-				dbAdjTree(tp, buddy, NOFREE, is_ctl);
+				dbAdjTree(tp, buddy, NOFREE);
 			} else {
 				/* buddy is the left buddy and becomes
 				 * leafno.
 				 */
-				dbAdjTree(tp, leafno, NOFREE, is_ctl);
+				dbAdjTree(tp, leafno, NOFREE);
 				leafno = buddy;
 			}
 
@@ -2915,7 +2915,7 @@ static int dbJoin(dmtree_t *tp, int leafno, int newval, bool is_ctl)
 
 	/* update the leaf value.
 	 */
-	dbAdjTree(tp, leafno, newval, is_ctl);
+	dbAdjTree(tp, leafno, newval);
 
 	return 0;
 }
@@ -2936,19 +2936,14 @@ static int dbJoin(dmtree_t *tp, int leafno, int newval, bool is_ctl)
  *
  * RETURN VALUES: none
  */
-static void dbAdjTree(dmtree_t *tp, int leafno, int newval, bool is_ctl)
+static void dbAdjTree(dmtree_t * tp, int leafno, int newval)
 {
 	int lp, pp, k;
-	int max, size;
-
-	size = is_ctl ? CTLTREESIZE : TREESIZE;
+	int max;
 
 	/* pick up the index of the leaf for this leafno.
 	 */
 	lp = leafno + le32_to_cpu(tp->dmt_leafidx);
-
-	if (WARN_ON_ONCE(lp >= size || lp < 0))
-		return;
 
 	/* is the current value the same as the old value ?  if so,
 	 * there is nothing to do.
