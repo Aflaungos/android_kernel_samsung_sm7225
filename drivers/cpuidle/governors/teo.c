@@ -187,6 +187,7 @@ struct teo_bin {
  * @next_recent_idx: Index of the next @recent_idx entry to update.
  * @recent_idx: Indices of bins corresponding to recent "intercepts".
  * @util_threshold: Threshold above which the CPU is considered utilized
+ * @utilized: Whether the last sleep on the CPU happened while utilized
  */
 struct teo_cpu {
 	s64 time_span_ns;
@@ -196,6 +197,7 @@ struct teo_cpu {
 	int next_recent_idx;
 	int recent_idx[NR_RECENT];
 	unsigned long util_threshold;
+	bool utilized;
 };
 
 static DEFINE_PER_CPU(struct teo_cpu, teo_cpus);
@@ -364,7 +366,6 @@ static int teo_select(struct cpuidle_driver *drv, struct cpuidle_device *dev,
 	int idx0 = 0, idx = -1;
 	bool alt_intercepts, alt_recent;
 	ktime_t delta_tick;
-	bool cpu_utilized;
 	s64 duration_us;
 	int i;
 
@@ -390,13 +391,13 @@ static int teo_select(struct cpuidle_driver *drv, struct cpuidle_device *dev,
 			goto out_tick;
 	}
 
-	cpu_utilized = teo_cpu_is_utilized(dev->cpu, cpu_data);
+	cpu_data->utilized = teo_cpu_is_utilized(dev->cpu, cpu_data);
 	/*
 	 * If the CPU is being utilized over the threshold and there are only 2
 	 * states to choose from, the metrics need not be considered, so choose
 	 * the shallowest non-polling state and exit.
 	 */
-	if (drv->state_count < 3 && cpu_utilized) {
+	if (drv->state_count < 3 && cpu_data->utilized) {
 		/* The CPU is utilized, so assume a short idle duration. */
 		duration_us = teo_middle_of_bin(0, drv);
 		/*
@@ -561,7 +562,7 @@ static int teo_select(struct cpuidle_driver *drv, struct cpuidle_device *dev,
 	 * been stopped already and the shallower state's target residency is
 	 * not sufficiently large.
 	 */
-	if (cpu_utilized) {
+	if (cpu_data->utilized) {
 		s64 span_us;
 
 		i = teo_find_shallower_state(drv, dev, idx, duration_us, true);
