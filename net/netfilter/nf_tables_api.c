@@ -993,7 +993,8 @@ static int nft_flush_table(struct nft_ctx *ctx)
 		if (!nft_is_active_next(ctx->net, set))
 			continue;
 
-		if (nft_set_is_anonymous(set))
+		if (nft_set_is_anonymous(set) &&
+		    !list_empty(&set->bindings))
 			continue;
 
 		err = nft_delset(ctx, set);
@@ -4901,10 +4902,8 @@ static int nf_tables_delsetelem(struct net *net, struct sock *nlsk,
 	if (IS_ERR(set))
 		return PTR_ERR(set);
 
-	if (nft_set_is_anonymous(set))
-		return -EOPNOTSUPP;
-
-	if (!list_empty(&set->bindings) && (set->flags & NFT_SET_CONSTANT))
+	if (!list_empty(&set->bindings) &&
+	    (set->flags & (NFT_SET_CONSTANT | NFT_SET_ANONYMOUS)))
 		return -EBUSY;
 
 	if (nla[NFTA_SET_ELEM_LIST_ELEMENTS] == NULL) {
