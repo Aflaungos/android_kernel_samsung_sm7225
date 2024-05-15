@@ -3129,8 +3129,7 @@ static int hidpp_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	/* Allow incoming packets */
 	hid_device_io_start(hdev);
 
-	schedule_work(&hidpp->work);
-	flush_work(&hidpp->work);
+	hidpp_connect_event(hidpp);
 
 	return ret;
 
