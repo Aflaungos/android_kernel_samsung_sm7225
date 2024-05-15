@@ -176,7 +176,7 @@ jobs:
 
           cp -f $GITHUB_WORKSPACE/kernel-source/out/arch/arm64/boot/Image .
 
-          ZIP_NAME="BoostKernel_${{ matrix.device }}"
+          ZIP_NAME="BoostKernel_${{ matrix.device }}+KernelSU"
 
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
@@ -188,7 +188,7 @@ jobs:
 
       - name: Upload Anykernel
 
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
 
         with:
 
@@ -202,7 +202,7 @@ jobs:
 
         if: success()
 
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
 
         with:
 
