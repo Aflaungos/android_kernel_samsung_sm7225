@@ -103,7 +103,7 @@ jobs:
         if: success()
         uses: softprops/action-gh-release@v2
         with:
-          name: "BoostKernel For ${{ matrix.device }}"
+          name: "BoostKernel For ${{ matrix.device }} with KernelSU"
           files: |
             ${{ env.ZIP_NAME }}.zip
           tag_name: ${{ github.run_number }}-${{ github.ref }}-${{ matrix.device }}
