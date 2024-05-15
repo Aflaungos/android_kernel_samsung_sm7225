@@ -48,7 +48,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add .
           git commit -m "New KernelSU Update! $latest_commit"
-          git push origin Rebase-Upstream
+          git push origin lineage-20.0-BoostKernel-Upstream+KSU
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2
