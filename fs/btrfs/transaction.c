@@ -200,11 +200,10 @@ loop:
 	spin_unlock(&fs_info->trans_lock);
 
 	/*
-	 * If we are ATTACH or TRANS_JOIN_NOSTART, we just want to catch the
-	 * current transaction, and commit it. If there is no transaction, just
-	 * return ENOENT.
+	 * If we are ATTACH, we just want to catch the current transaction,
+	 * and commit it. If there is no transaction, just return ENOENT.
 	 */
-	if (type == TRANS_ATTACH || type == TRANS_JOIN_NOSTART)
+	if (type == TRANS_ATTACH)
 		return -ENOENT;
 
 	/*
