@@ -6439,7 +6439,6 @@ err_init_binder_device_failed:
 
 err_alloc_device_names_failed:
 	debugfs_remove_recursive(binder_debugfs_dir_entry_root);
-	binder_alloc_shrinker_exit();
 
 err_workqueue_init_failed:
 	destroy_workqueue(binder_deferred_workqueue);
