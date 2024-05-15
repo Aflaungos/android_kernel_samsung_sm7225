@@ -1,8 +1,8 @@
-name: Build BoostKernel A14 with KernelSU
+name: Build BoostKernel A14 w/o KernelSU
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 10 * * *"
+    - cron: "10 10 * * *"
 
 jobs:
   build:
