@@ -521,10 +521,8 @@ static int udf_do_extend_file(struct inode *inode,
 	}
 
 	if (fake) {
-		err = udf_add_aext(inode, last_pos, &last_ext->extLocation,
-				   last_ext->extLength, 1);
-		if (err < 0)
-			goto out_err;
+		udf_add_aext(inode, last_pos, &last_ext->extLocation,
+			     last_ext->extLength, 1);
 		count++;
 	} else {
 		struct kernel_lb_addr tmploc;
@@ -558,7 +556,7 @@ static int udf_do_extend_file(struct inode *inode,
 		err = udf_add_aext(inode, last_pos, &last_ext->extLocation,
 				   last_ext->extLength, 1);
 		if (err)
-			goto out_err;
+			return err;
 		count++;
 	}
 	if (new_block_bytes) {
@@ -567,7 +565,7 @@ static int udf_do_extend_file(struct inode *inode,
 		err = udf_add_aext(inode, last_pos, &last_ext->extLocation,
 				   last_ext->extLength, 1);
 		if (err)
-			goto out_err;
+			return err;
 		count++;
 	}
 
@@ -581,11 +579,6 @@ out:
 		return -EIO;
 
 	return count;
-out_err:
-	/* Remove extents we've created so far */
-	udf_clear_extent_cache(inode);
-	udf_truncate_extents(inode);
-	return err;
 }
 
 /* Extend the final block of the file to final_block_len bytes */
@@ -800,17 +793,19 @@ static sector_t inode_getblk(struct inode *inode, sector_t block,
 		c = 0;
 		offset = 0;
 		count += ret;
-		/*
-		 * Is there any real extent? - otherwise we overwrite the fake
-		 * one...
-		 */
-		if (count)
-			c = !c;
-		laarr[c].extLength = EXT_NOT_RECORDED_NOT_ALLOCATED |
-			inode->i_sb->s_blocksize;
-		memset(&laarr[c].extLocation, 0x00,
-			sizeof(struct kernel_lb_addr));
-		count++;
+		/* We are not covered by a preallocated extent? */
+		if ((laarr[0].extLength & UDF_EXTENT_FLAG_MASK) !=
+						EXT_NOT_RECORDED_ALLOCATED) {
+			/* Is there any real extent? - otherwise we overwrite
+			 * the fake one... */
+			if (count)
+				c = !c;
+			laarr[c].extLength = EXT_NOT_RECORDED_NOT_ALLOCATED |
+				inode->i_sb->s_blocksize;
+			memset(&laarr[c].extLocation, 0x00,
+				sizeof(struct kernel_lb_addr));
+			count++;
+		}
 		endnum = c + 1;
 		lastblock = 1;
 	} else {
@@ -1087,8 +1082,23 @@ static void udf_merge_extents(struct inode *inode, struct kernel_long_ad *laarr,
 			blocksize - 1) >> blocksize_bits)))) {
 
 			if (((li->extLength & UDF_EXTENT_LENGTH_MASK) +
-			     (lip1->extLength & UDF_EXTENT_LENGTH_MASK) +
-			     blocksize - 1) <= UDF_EXTENT_LENGTH_MASK) {
+				(lip1->extLength & UDF_EXTENT_LENGTH_MASK) +
+				blocksize - 1) & ~UDF_EXTENT_LENGTH_MASK) {
+				lip1->extLength = (lip1->extLength -
+						  (li->extLength &
+						   UDF_EXTENT_LENGTH_MASK) +
+						   UDF_EXTENT_LENGTH_MASK) &
+							~(blocksize - 1);
+				li->extLength = (li->extLength &
+						 UDF_EXTENT_FLAG_MASK) +
+						(UDF_EXTENT_LENGTH_MASK + 1) -
+						blocksize;
+				lip1->extLocation.logicalBlockNum =
+					li->extLocation.logicalBlockNum +
+					((li->extLength &
+						UDF_EXTENT_LENGTH_MASK) >>
+						blocksize_bits);
+			} else {
 				li->extLength = lip1->extLength +
 					(((li->extLength &
 						UDF_EXTENT_LENGTH_MASK) +
