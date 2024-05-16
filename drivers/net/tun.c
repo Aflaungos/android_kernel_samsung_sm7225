@@ -290,9 +290,6 @@ struct tun_struct {
 	struct tun_prog __rcu *steering_prog;
 	struct tun_prog __rcu *filter_prog;
 	struct ethtool_link_ksettings link_ksettings;
-	/* init args */
-	struct file *file;
-	struct ifreq *ifr;
 };
 
 struct veth {
@@ -317,9 +314,6 @@ void *tun_ptr_to_xdp(void *ptr)
 	return (void *)((unsigned long)ptr & ~TUN_XDP_FLAG);
 }
 EXPORT_SYMBOL(tun_ptr_to_xdp);
-
-static void tun_flow_init(struct tun_struct *tun);
-static void tun_flow_uninit(struct tun_struct *tun);
 
 static int tun_napi_receive(struct napi_struct *napi, int budget)
 {
@@ -1078,49 +1072,6 @@ static int check_filter(struct tap_filter *filter, const struct sk_buff *skb)
 
 static const struct ethtool_ops tun_ethtool_ops;
 
-static int tun_net_init(struct net_device *dev)
-{
-	struct tun_struct *tun = netdev_priv(dev);
-	struct ifreq *ifr = tun->ifr;
-	int err;
-
-	tun->pcpu_stats = netdev_alloc_pcpu_stats(struct tun_pcpu_stats);
-	if (!tun->pcpu_stats)
-		return -ENOMEM;
-
-	spin_lock_init(&tun->lock);
-
-	err = security_tun_dev_alloc_security(&tun->security);
-	if (err < 0) {
-		free_percpu(tun->pcpu_stats);
-		return err;
-	}
-
-	tun_flow_init(tun);
-
-	dev->hw_features = NETIF_F_SG | NETIF_F_FRAGLIST |
-			   TUN_USER_FEATURES | NETIF_F_HW_VLAN_CTAG_TX |
-			   NETIF_F_HW_VLAN_STAG_TX;
-	dev->features = dev->hw_features | NETIF_F_LLTX;
-	dev->vlan_features = dev->features &
-			     ~(NETIF_F_HW_VLAN_CTAG_TX |
-			       NETIF_F_HW_VLAN_STAG_TX);
-
-	tun->flags = (tun->flags & ~TUN_FEATURES) |
-		      (ifr->ifr_flags & TUN_FEATURES);
-
-	INIT_LIST_HEAD(&tun->disabled);
-	err = tun_attach(tun, tun->file, false, ifr->ifr_flags & IFF_NAPI,
-			 ifr->ifr_flags & IFF_NAPI_FRAGS, false);
-	if (err < 0) {
-		tun_flow_uninit(tun);
-		security_tun_dev_free_security(tun->security);
-		free_percpu(tun->pcpu_stats);
-		return err;
-	}
-	return 0;
-}
-
 /* Net device detach from fd. */
 static void tun_net_uninit(struct net_device *dev)
 {
@@ -1351,7 +1302,6 @@ static int tun_xdp(struct net_device *dev, struct netdev_bpf *xdp)
 }
 
 static const struct net_device_ops tun_netdev_ops = {
-	.ndo_init		= tun_net_init,
 	.ndo_uninit		= tun_net_uninit,
 	.ndo_open		= tun_net_open,
 	.ndo_stop		= tun_net_close,
@@ -1431,7 +1381,6 @@ static int tun_xdp_tx(struct net_device *dev, struct xdp_buff *xdp)
 }
 
 static const struct net_device_ops tap_netdev_ops = {
-	.ndo_init		= tun_net_init,
 	.ndo_uninit		= tun_net_uninit,
 	.ndo_open		= tun_net_open,
 	.ndo_stop		= tun_net_close,
@@ -1471,7 +1420,7 @@ static void tun_flow_uninit(struct tun_struct *tun)
 #define MAX_MTU 65535
 
 /* Initialize net device. */
-static void tun_net_initialize(struct net_device *dev)
+static void tun_net_init(struct net_device *dev)
 {
 	struct tun_struct *tun = netdev_priv(dev);
 
@@ -2811,6 +2760,9 @@ static int tun_set_iff(struct net *net, struct file *file, struct ifreq *ifr)
 
 		if (!dev)
 			return -ENOMEM;
+		err = dev_get_valid_name(net, dev, name);
+		if (err < 0)
+			goto err_free_dev;
 
 		dev_net_set(dev, net);
 		dev->rtnl_link_ops = &tun_link_ops;
@@ -2829,16 +2781,41 @@ static int tun_set_iff(struct net *net, struct file *file, struct ifreq *ifr)
 		tun->rx_batched = 0;
 		RCU_INIT_POINTER(tun->steering_prog, NULL);
 
-		tun->ifr = ifr;
-		tun->file = file;
+		tun->pcpu_stats = netdev_alloc_pcpu_stats(struct tun_pcpu_stats);
+		if (!tun->pcpu_stats) {
+			err = -ENOMEM;
+			goto err_free_dev;
+		}
 
-		tun_net_initialize(dev);
+		spin_lock_init(&tun->lock);
+
+		err = security_tun_dev_alloc_security(&tun->security);
+		if (err < 0)
+			goto err_free_stat;
+
+		tun_net_init(dev);
+		tun_flow_init(tun);
+
+		dev->hw_features = NETIF_F_SG | NETIF_F_FRAGLIST |
+				   TUN_USER_FEATURES | NETIF_F_HW_VLAN_CTAG_TX |
+				   NETIF_F_HW_VLAN_STAG_TX;
+		dev->features = dev->hw_features | NETIF_F_LLTX;
+		dev->vlan_features = dev->features &
+				     ~(NETIF_F_HW_VLAN_CTAG_TX |
+				       NETIF_F_HW_VLAN_STAG_TX);
+
+		tun->flags = (tun->flags & ~TUN_FEATURES) |
+			      (ifr->ifr_flags & TUN_FEATURES);
+
+		INIT_LIST_HEAD(&tun->disabled);
+		err = tun_attach(tun, file, false, ifr->ifr_flags & IFF_NAPI,
+				 ifr->ifr_flags & IFF_NAPI_FRAGS, false);
+		if (err < 0)
+			goto err_free_flow;
 
 		err = register_netdevice(tun->dev);
-		if (err < 0) {
-			free_netdev(dev);
-			return err;
-		}
+		if (err < 0)
+			goto err_detach;
 		/* free_netdev() won't check refcnt, to aovid race
 		 * with dev_put() we need publish tun after registration.
 		 */
@@ -2864,6 +2841,20 @@ static int tun_set_iff(struct net *net, struct file *file, struct ifreq *ifr)
 
 	strcpy(ifr->ifr_name, tun->dev->name);
 	return 0;
+
+err_detach:
+	tun_detach_all(dev);
+	/* register_netdevice() already called tun_free_netdev() */
+	goto err_free_dev;
+
+err_free_flow:
+	tun_flow_uninit(tun);
+	security_tun_dev_free_security(tun->security);
+err_free_stat:
+	free_percpu(tun->pcpu_stats);
+err_free_dev:
+	free_netdev(dev);
+	return err;
 }
 
 static void tun_get_iff(struct net *net, struct tun_struct *tun,
