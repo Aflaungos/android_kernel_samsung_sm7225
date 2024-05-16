@@ -14,7 +14,7 @@
 
 struct nft_tunnel {
 	enum nft_tunnel_keys	key:8;
-	u8			dreg;
+	enum nft_registers	dreg:8;
 };
 
 static void nft_tunnel_get_eval(const struct nft_expr *expr,
@@ -72,8 +72,10 @@ static int nft_tunnel_get_init(const struct nft_ctx *ctx,
 		return -EOPNOTSUPP;
 	}
 
-	return nft_parse_register_store(ctx, tb[NFTA_TUNNEL_DREG], &priv->dreg,
-					NULL, NFT_DATA_VALUE, len);
+	priv->dreg = nft_parse_register(tb[NFTA_TUNNEL_DREG]);
+
+	return nft_validate_register_store(ctx, priv->dreg, NULL,
+					   NFT_DATA_VALUE, len);
 }
 
 static int nft_tunnel_get_dump(struct sk_buff *skb,

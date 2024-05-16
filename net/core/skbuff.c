@@ -4453,10 +4453,8 @@ void __skb_tstamp_tx(struct sk_buff *orig_skb,
 	} else {
 		skb = skb_clone(orig_skb, GFP_ATOMIC);
 
-		if (skb_orphan_frags_rx(skb, GFP_ATOMIC)) {
-			kfree_skb(skb);
+		if (skb_orphan_frags_rx(skb, GFP_ATOMIC))
 			return;
-		}
 	}
 	if (!skb)
 		return;
