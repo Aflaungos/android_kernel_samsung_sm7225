@@ -519,6 +519,9 @@ static int ses_enclosure_find_by_addr(struct enclosure_device *edev,
 	int i;
 	struct ses_component *scomp;
 
+	if (!edev->component[0].scratch)
+		return 0;
+
 	for (i = 0; i < edev->components; i++) {
 		scomp = edev->component[i].scratch;
 		if (scomp->addr != efd->addr)
@@ -609,10 +612,8 @@ static void ses_enclosure_data_process(struct enclosure_device *edev,
 						components++,
 						type_ptr[0],
 						name);
-				else if (components < edev->components)
-					ecomp = &edev->component[components++];
 				else
-					ecomp = ERR_PTR(-EINVAL);
+					ecomp = &edev->component[components++];
 
 				if (!IS_ERR(ecomp)) {
 					if (addl_desc_ptr) {
@@ -743,6 +744,11 @@ static int ses_intf_add(struct device *cdev,
 			components += type_ptr[1];
 	}
 
+	if (components == 0) {
+		sdev_printk(KERN_WARNING, sdev, "enclosure has no enumerated components\n");
+		goto err_free;
+	}
+
 	ses_dev->page1 = buf;
 	ses_dev->page1_len = len;
 	buf = NULL;
@@ -784,11 +790,9 @@ static int ses_intf_add(struct device *cdev,
 		buf = NULL;
 	}
 page2_not_supported:
-	if (components > 0) {
-		scomp = kcalloc(components, sizeof(struct ses_component), GFP_KERNEL);
-		if (!scomp)
-			goto err_free;
-	}
+	scomp = kcalloc(components, sizeof(struct ses_component), GFP_KERNEL);
+	if (!scomp)
+		goto err_free;
 
 	edev = enclosure_register(cdev->parent, dev_name(&sdev->sdev_gendev),
 				  components, &ses_enclosure_callbacks);

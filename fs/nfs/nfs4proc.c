@@ -1792,7 +1792,7 @@ static struct nfs4_state *nfs4_try_open_cached(struct nfs4_opendata *opendata)
 out:
 	return ERR_PTR(ret);
 out_return_state:
-	refcount_inc(&state->count);
+	atomic_inc(&state->count);
 	return state;
 }
 
@@ -1851,7 +1851,8 @@ _nfs4_opendata_reclaim_to_nfs4_state(struct nfs4_opendata *data)
 	if (!data->rpc_done) {
 		if (data->rpc_status)
 			return ERR_PTR(data->rpc_status);
-		return nfs4_try_open_cached(data);
+		/* cached opens have already been processed */
+		goto update;
 	}
 
 	ret = nfs_refresh_inode(inode, &data->f_attr);
@@ -1860,11 +1861,10 @@ _nfs4_opendata_reclaim_to_nfs4_state(struct nfs4_opendata *data)
 
 	if (data->o_res.delegation_type != 0)
 		nfs4_opendata_check_deleg(data, state);
-
-	if (!update_open_stateid(state, &data->o_res.stateid,
-				NULL, data->o_arg.fmode))
-		return ERR_PTR(-EAGAIN);
-	refcount_inc(&state->count);
+update:
+	update_open_stateid(state, &data->o_res.stateid, NULL,
+			    data->o_arg.fmode);
+	atomic_inc(&state->count);
 
 	return state;
 }
@@ -1902,7 +1902,7 @@ nfs4_opendata_find_nfs4_state(struct nfs4_opendata *data)
 		return ERR_CAST(inode);
 	if (data->state != NULL && data->state->inode == inode) {
 		state = data->state;
-		refcount_inc(&state->count);
+		atomic_inc(&state->count);
 	} else
 		state = nfs4_get_open_state(inode, data->owner);
 	iput(inode);
@@ -1928,11 +1928,8 @@ _nfs4_opendata_to_nfs4_state(struct nfs4_opendata *data)
 
 	if (data->o_res.delegation_type != 0)
 		nfs4_opendata_check_deleg(data, state);
-	if (!update_open_stateid(state, &data->o_res.stateid,
-				NULL, data->o_arg.fmode)) {
-		nfs4_put_open_state(state);
-		state = ERR_PTR(-EAGAIN);
-	}
+	update_open_stateid(state, &data->o_res.stateid, NULL,
+			data->o_arg.fmode);
 out:
 	nfs_release_seqid(data->o_arg.seqid);
 	return state;
@@ -1978,7 +1975,7 @@ static struct nfs4_opendata *nfs4_open_recoverdata_alloc(struct nfs_open_context
 	if (opendata == NULL)
 		return ERR_PTR(-ENOMEM);
 	opendata->state = state;
-	refcount_inc(&state->count);
+	atomic_inc(&state->count);
 	return opendata;
 }
 
