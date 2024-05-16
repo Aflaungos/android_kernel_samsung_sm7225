@@ -436,7 +436,6 @@ static int do_tmpfile(struct inode *dir, struct dentry *dentry,
 	mutex_unlock(&dir_ui->ui_mutex);
 
 	ubifs_release_budget(c, &req);
-	fscrypt_free_filename(&nm);
 
 	return 0;
 

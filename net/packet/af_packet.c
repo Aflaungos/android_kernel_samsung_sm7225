@@ -1955,7 +1955,7 @@ retry:
 		goto retry;
 	}
 
-	if (!dev_validate_header(dev, skb->data, len) || !skb->len) {
+	if (!dev_validate_header(dev, skb->data, len)) {
 		err = -EINVAL;
 		goto out_unlock;
 	}
@@ -2105,7 +2105,7 @@ static int packet_rcv(struct sk_buff *skb, struct net_device *dev,
 	sll = &PACKET_SKB_CB(skb)->sa.ll;
 	sll->sll_hatype = dev->type;
 	sll->sll_pkttype = skb->pkt_type;
-	if (unlikely(packet_sock_flag(po, PACKET_SOCK_ORIGDEV)))
+	if (unlikely(po->origdev))
 		sll->sll_ifindex = orig_dev->ifindex;
 	else
 		sll->sll_ifindex = dev->ifindex;
@@ -2371,7 +2371,7 @@ static int tpacket_rcv(struct sk_buff *skb, struct net_device *dev,
 	sll->sll_hatype = dev->type;
 	sll->sll_protocol = skb->protocol;
 	sll->sll_pkttype = skb->pkt_type;
-	if (unlikely(packet_sock_flag(po, PACKET_SOCK_ORIGDEV)))
+	if (unlikely(po->origdev))
 		sll->sll_ifindex = orig_dev->ifindex;
 	else
 		sll->sll_ifindex = dev->ifindex;
@@ -3444,7 +3444,7 @@ static int packet_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
 		memcpy(msg->msg_name, &PACKET_SKB_CB(skb)->sa, copy_len);
 	}
 
-	if (packet_sock_flag(pkt_sk(sk), PACKET_SOCK_AUXDATA)) {
+	if (pkt_sk(sk)->auxdata) {
 		struct tpacket_auxdata aux;
 
 		aux.tp_status = TP_STATUS_USER;
@@ -3827,7 +3827,9 @@ packet_setsockopt(struct socket *sock, int level, int optname, char __user *optv
 		if (copy_from_user(&val, optval, sizeof(val)))
 			return -EFAULT;
 
-		packet_sock_flag_set(po, PACKET_SOCK_AUXDATA, val);
+		lock_sock(sk);
+		po->auxdata = !!val;
+		release_sock(sk);
 		return 0;
 	}
 	case PACKET_ORIGDEV:
@@ -3839,7 +3841,9 @@ packet_setsockopt(struct socket *sock, int level, int optname, char __user *optv
 		if (copy_from_user(&val, optval, sizeof(val)))
 			return -EFAULT;
 
-		packet_sock_flag_set(po, PACKET_SOCK_ORIGDEV, val);
+		lock_sock(sk);
+		po->origdev = !!val;
+		release_sock(sk);
 		return 0;
 	}
 	case PACKET_VNET_HDR:
@@ -3969,10 +3973,10 @@ static int packet_getsockopt(struct socket *sock, int level, int optname,
 
 		break;
 	case PACKET_AUXDATA:
-		val = packet_sock_flag(po, PACKET_SOCK_AUXDATA);
+		val = po->auxdata;
 		break;
 	case PACKET_ORIGDEV:
-		val = packet_sock_flag(po, PACKET_SOCK_ORIGDEV);
+		val = po->origdev;
 		break;
 	case PACKET_VNET_HDR:
 		val = po->has_vnet_hdr;
