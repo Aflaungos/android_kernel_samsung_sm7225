@@ -497,7 +497,7 @@ static int verity_verify_io(struct dm_verity_io *io)
 		sector_t cur_block = io->block + b;
 		struct ahash_request *req = verity_io_hash_req(v, io);
 
-		if (v->validated_blocks &&
+		if (v->validated_blocks && bio->bi_status == BLK_STS_OK &&
 		    likely(test_bit(cur_block, v->validated_blocks))) {
 			verity_bv_skip_block(v, io, &io->iter);
 #ifdef SEC_HEX_DEBUG
@@ -566,11 +566,18 @@ static int verity_verify_io(struct dm_verity_io *io)
 				add_corrupted_blks();
 			}
 #else
-		} else if (verity_handle_err(v, DM_VERITY_BLOCK_TYPE_DATA,
-					   cur_block)) {
+		else {
+			if (bio->bi_status) {
 #endif
-			return -EIO;
-		}
+				/*
+				 * Error correction failed; Just return error
+				 */
+			        return -EIO;
+			}
+			if (verity_handle_err(v, DM_VERITY_BLOCK_TYPE_DATA,
+					      cur_block))
+					return -EIO;
+			}
 	}
 
 	return 0;
