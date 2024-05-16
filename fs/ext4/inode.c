@@ -4962,13 +4962,8 @@ static inline int ext4_iget_extra_inode(struct inode *inode,
 
 	if (EXT4_INODE_HAS_XATTR_SPACE(inode)  &&
 	    *magic == cpu_to_le32(EXT4_XATTR_MAGIC)) {
-		int err;
-
 		ext4_set_inode_state(inode, EXT4_STATE_XATTR);
-		err = ext4_find_inline_data_nolock(inode);
-		if (!err && ext4_has_inline_data(inode))
-			ext4_set_inode_state(inode, EXT4_STATE_MAY_INLINE_DATA);
-		return err;
+		return ext4_find_inline_data_nolock(inode);
 	} else
 		EXT4_I(inode)->i_inline_off = 0;
 	return 0;
