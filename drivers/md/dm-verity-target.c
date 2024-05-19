@@ -568,9 +568,9 @@ static int verity_verify_io(struct dm_verity_io *io)
 #else
 			if (verity_handle_err(v, DM_VERITY_BLOCK_TYPE_DATA,
 					cur_block)) {
-#endif
 				return -EIO;
 			}
+#endif
 		}
 	}
 
