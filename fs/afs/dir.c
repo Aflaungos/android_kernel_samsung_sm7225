@@ -383,11 +383,8 @@ static int afs_dir_iterate_block(struct dir_context *ctx,
 		}
 
 		/* skip if starts before the current position */
-		if (offset < curr) {
-			if (next > curr)
-				ctx->pos = blkoff + next * sizeof(union afs_xdr_dirent);
+		if (offset < curr)
 			continue;
-		}
 
 		/* found the next entry */
 		if (!dir_emit(ctx, dire->u.name, nlen,
