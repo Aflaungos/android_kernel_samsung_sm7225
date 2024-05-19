@@ -1551,8 +1551,7 @@ static void ovs_dp_reset_user_features(struct sk_buff *skb, struct genl_info *in
 	if (IS_ERR(dp))
 		return;
 
-	pr_warn("%s: Dropping previously announced user features\n",
-		ovs_dp_name(dp));
+	WARN(dp->user_features, "Dropping previously announced user features\n");
 	dp->user_features = 0;
 }
 
