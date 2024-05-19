@@ -1450,7 +1450,7 @@ static void mmc_blk_issue_discard_rq(struct mmc_queue *mq, struct request *req)
 					 arg == MMC_TRIM_ARG ?
 					 INAND_CMD38_ARG_TRIM :
 					 INAND_CMD38_ARG_ERASE,
-					 card->ext_csd.generic_cmd6_time);
+					 0);
 		}
 		if (!err)
 			err = mmc_erase(card, from, nr, arg);
@@ -1492,7 +1492,7 @@ retry:
 				 arg == MMC_SECURE_TRIM1_ARG ?
 				 INAND_CMD38_ARG_SECTRIM1 :
 				 INAND_CMD38_ARG_SECERASE,
-				 card->ext_csd.generic_cmd6_time);
+				 0);
 		if (err)
 			goto out_retry;
 	}
@@ -1510,7 +1510,7 @@ retry:
 			err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
 					 INAND_CMD38_ARG_EXT_CSD,
 					 INAND_CMD38_ARG_SECTRIM2,
-					 card->ext_csd.generic_cmd6_time);
+					 0);
 			if (err)
 				goto out_retry;
 		}
@@ -2312,7 +2312,7 @@ static void mmc_blk_urgent_bkops(struct mmc_queue *mq,
 				 struct mmc_queue_req *mqrq)
 {
 	if (mmc_blk_urgent_bkops_needed(mq, mqrq))
-		mmc_run_bkops(mq->card);
+		mmc_start_bkops(mq->card, true);
 }
 
 void mmc_blk_mq_complete(struct request *req)
