@@ -1386,9 +1386,7 @@ static void intr_callback(struct urb *urb)
 			   "Stop submitting intr, status %d\n", status);
 		return;
 	case -EOVERFLOW:
-		if (net_ratelimit())
-			netif_info(tp, intr, tp->netdev,
-				   "intr status -EOVERFLOW\n");
+		netif_info(tp, intr, tp->netdev, "intr status -EOVERFLOW\n");
 		goto resubmit;
 	/* -EPIPE:  should clear the halt */
 	default:

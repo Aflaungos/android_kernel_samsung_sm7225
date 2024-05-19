@@ -249,17 +249,10 @@ void ovs_dp_process_packet(struct sk_buff *skb, struct sw_flow_key *key)
 		upcall.portid = ovs_vport_find_upcall_portid(p, skb);
 		upcall.mru = OVS_CB(skb)->mru;
 		error = ovs_dp_upcall(dp, skb, key, &upcall, 0);
-		switch (error) {
-		case 0:
-		case -EAGAIN:
-		case -ERESTARTSYS:
-		case -EINTR:
-			consume_skb(skb);
-			break;
-		default:
+		if (unlikely(error))
 			kfree_skb(skb);
-			break;
-		}
+		else
+			consume_skb(skb);
 		stats_counter = &stats->n_missed;
 		goto out;
 	}
@@ -526,9 +519,8 @@ static int queue_userspace_packet(struct datapath *dp, struct sk_buff *skb,
 out:
 	if (err)
 		skb_tx_error(skb);
-	consume_skb(user_skb);
-	consume_skb(nskb);
-
+	kfree_skb(user_skb);
+	kfree_skb(nskb);
 	return err;
 }
 
