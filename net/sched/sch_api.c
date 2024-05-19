@@ -1031,12 +1031,8 @@ skip:
 			unsigned long cl = cops->find(parent, classid);
 
 			if (cl) {
-				if (new && new->ops == &noqueue_qdisc_ops) {
-					NL_SET_ERR_MSG(extack, "Cannot assign noqueue to a class");
-					err = -EINVAL;
-				} else {
-					err = cops->graft(parent, cl, new, &old, extack);
-				}
+				err = cops->graft(parent, cl, new, &old,
+						  extack);
 			} else {
 				NL_SET_ERR_MSG(extack, "Specified class not found");
 				err = -ENOENT;
