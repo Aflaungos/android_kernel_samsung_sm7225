@@ -1107,6 +1107,20 @@ static void rotator_thread_priority_worker(struct kthread_work *work)
 			current->tgid, task->comm, ret);
 }
 
+static void rotator_thread_priority_worker(struct kthread_work *work)
+{
+	int ret = 0;
+	struct sched_param param = { 0 };
+	struct task_struct *task = current->group_leader;
+
+	param.sched_priority = 5;
+	ret = sched_setscheduler(task, SCHED_FIFO, &param);
+	if (ret)
+		SDEROT_ERR(
+			"pid:%d name:%s priority update failed %d\n",
+			current->tgid, task->comm, ret);
+}
+
 /*
  * caller will need to call sde_rotator_deinit_queue when
  * the function returns error
@@ -1129,7 +1143,7 @@ static int sde_rotator_init_queue(struct sde_rot_mgr *mgr)
 				&mgr->commitq[i].rot_kw, name);
 		kthread_init_work(&mgr->thread_priority_work,
 				rotator_thread_priority_worker);
-		kthread_queue_work(&mgr->commitq[i].rot_kw,
+		kthread_queue_work(&mgr->doneq[i].rot_kw,
 				&mgr->thread_priority_work);
 		kthread_flush_work(&mgr->thread_priority_work);
 		if (IS_ERR(mgr->commitq[i].rot_thread)) {
