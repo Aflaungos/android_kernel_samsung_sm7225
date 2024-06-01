@@ -29,6 +29,9 @@ extern unsigned int adreno_drawobj_timeout;
  * @tail: Queues tail pointer
  * @active_context_count: Number of active contexts seen in this rb drawqueue
  * @expires: The jiffies value at which this drawqueue has run too long
+ * @thread: Kthread for the command dispatcher
+ * @cmd_waitq: Waitqueue for the command dispatcher
+ * @send_cmds: Atomic boolean indicating that commands should be dispatched
  */
 struct adreno_dispatcher_drawqueue {
 	struct kgsl_drawobj_cmd *cmd_q[ADRENO_DISPATCH_DRAWQUEUE_SIZE];
@@ -48,7 +51,6 @@ struct adreno_dispatcher_drawqueue {
  * @fault: Non-zero if a fault was detected.
  * @pending: Priority list of contexts waiting to submit drawobjs
  * @plist_lock: Spin lock to protect the pending queue
- * @work: work_struct to put the dispatcher in a work queue
  * @kobj: kobject for the dispatcher directory in the device sysfs node
  * @idle_gate: Gate to wait on for dispatcher to idle
  */
@@ -61,9 +63,11 @@ struct adreno_dispatcher {
 	atomic_t fault;
 	struct plist_head pending;
 	spinlock_t plist_lock;
-	struct kthread_work work;
 	struct kobject kobj;
 	struct completion idle_gate;
+	struct task_struct *thread;
+	wait_queue_head_t cmd_waitq;
+	atomic_t send_cmds;
 };
 
 enum adreno_dispatcher_flags {
