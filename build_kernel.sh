@@ -1,6 +1,11 @@
 #!/bin/bash
 
 export ARCH=arm64
+export CCACHE_SIZE=10G
+export CCACHE_DIR=${HOME}/ccache
+export USE_CCACHE=1
+export CCACHE_COMPRESS=1
+export CCACHE_EXEC=/usr/bin/ccache
 export PROJECT_NAME=m23xq
 CLANG="${HOME}/linux-x86-main/clang-r487747c/bin"
 export CLANG_TRIPLE=aarch64-linux-gnu-
