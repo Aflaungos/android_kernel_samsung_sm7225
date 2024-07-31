@@ -28,6 +28,12 @@ jobs:
           ref: Diagnose-downstream-volte-255
           path: kernel-source
 
+      - name: Setup submodules
+        run: |
+          cd /KernelSU
+          git checkout v0.9.5
+          cd ..
+
       - name: Cache Build Tools
         id: cache-aosp-clang
         uses: actions/cache@v4
