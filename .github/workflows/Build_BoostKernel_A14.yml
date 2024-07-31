@@ -31,7 +31,7 @@ jobs:
       - name: Setup submodules
         run: |
           cd $GITHUB_WORKSPACE/kernel-source/KernelSU
-          git checkout v0.9.5
+          git checkout b766b98513b5a7eb33bc1c4a76b5702bf1288f07
           cd ..
 
       - name: Cache Build Tools
