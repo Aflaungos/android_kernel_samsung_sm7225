@@ -30,7 +30,7 @@ jobs:
 
       - name: Setup submodules
         run: |
-          cd /KernelSU
+          cd $GITHUB_WORKSPACE/kernel-source/KernelSU
           git checkout v0.9.5
           cd ..
 
