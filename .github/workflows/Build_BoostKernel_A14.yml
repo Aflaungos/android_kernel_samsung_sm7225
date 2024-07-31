@@ -1,4 +1,4 @@
-name: Build BoostKernel A14 w/o KernelSU
+name: Build BoostKernel A14
 on:
   workflow_dispatch:
 
@@ -30,6 +30,7 @@ jobs:
 
       - name: Setup submodules
         run: |
+          cd $GITHUB_WORKSPACE/kernel-source/
           git submodule update --init --recursive --depth 0
           cd $GITHUB_WORKSPACE/kernel-source/KernelSU
           git checkout b766b98513b5a7eb33bc1c4a76b5702bf1288f07
