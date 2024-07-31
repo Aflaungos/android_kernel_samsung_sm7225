@@ -30,6 +30,7 @@ jobs:
 
       - name: Setup submodules
         run: |
+          git submodule update --init --recursive --depth 0
           cd $GITHUB_WORKSPACE/kernel-source/KernelSU
           git checkout b766b98513b5a7eb33bc1c4a76b5702bf1288f07
           cd ..
