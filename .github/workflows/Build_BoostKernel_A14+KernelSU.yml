@@ -29,6 +29,7 @@ jobs:
           path: kernel-source
 
       - name: Setup submodules
+        working-directory: kernel-source
         run: git submodule update --init --recursive --depth 0
 
       - name: Cache Build Tools
@@ -87,7 +88,7 @@ jobs:
         run: |
           cp -f $GITHUB_WORKSPACE/kernel-source/out/arch/arm64/boot/Image .
           cp -f $GITHUB_WORKSPACE/kernel-source/out/arch/arm64/boot/dtbo.img .
-          ZIP_NAME="BoostKernel_${{ matrix.device }}_$(date +'%Y-%m-%d')"
+          ZIP_NAME="BoostKernel_${{ matrix.device }}+KSU_$(date +'%Y-%m-%d')"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           zip -r "$ZIP_NAME.zip" *
           mv "$ZIP_NAME.zip" $GITHUB_WORKSPACE
