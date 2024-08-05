@@ -84,7 +84,7 @@ jobs:
         run: |
           cp -f $GITHUB_WORKSPACE/kernel-source/out/arch/arm64/boot/Image .
           cp -f $GITHUB_WORKSPACE/kernel-source/out/arch/arm64/boot/dtbo.img .
-          ZIP_NAME="BoostKernel_${{ matrix.device }}"
+          ZIP_NAME="BoostKernel_${{ matrix.device }}_$(date +'%Y-%m-%d')"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           zip -r "$ZIP_NAME.zip" *
           mv "$ZIP_NAME.zip" $GITHUB_WORKSPACE
