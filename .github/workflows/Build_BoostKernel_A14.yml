@@ -1,4 +1,4 @@
-name: Build BoostKernel A14
+name: Build BoostKernel A14 + KernelSU
 on:
   workflow_dispatch:
 
@@ -25,16 +25,11 @@ jobs:
       - name: Setup kernel source
         uses: actions/checkout@v4
         with:
-          ref: Diagnose-downstream-volte-255
+          ref: lineage-20.0-BoostKernel+KSU
           path: kernel-source
 
       - name: Setup submodules
-        run: |
-          cd $GITHUB_WORKSPACE/kernel-source/
-          git submodule update --init --recursive --depth 0
-          cd $GITHUB_WORKSPACE/kernel-source/KernelSU
-          git checkout b766b98513b5a7eb33bc1c4a76b5702bf1288f07
-          cd ..
+        run: git submodule update --init --recursive --depth 0
 
       - name: Cache Build Tools
         id: cache-aosp-clang
@@ -115,7 +110,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body_path: ${{ github.workspace }}/checksum.txt
-          name: "BoostKernel For ${{ matrix.device }} without KernelSU"
+          name: "BoostKernel For ${{ matrix.device }} with KernelSU"
           files: |
             ${{ env.ZIP_NAME }}.zip
           tag_name: ${{ github.run_number }}-${{ github.ref }}-${{ matrix.device }}
