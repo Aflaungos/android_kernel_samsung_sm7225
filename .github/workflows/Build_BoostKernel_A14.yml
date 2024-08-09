@@ -96,6 +96,12 @@ jobs:
           # Read the checksum into a variable
           CHECKSUM=$(cat checksum.txt)
 
+      - name: Get recent commits
+        run: |
+          echo "## Recent Commits" > recent-commits.md
+          echo "" >> recent-commits.md
+          git log -5 --pretty=format:"- %s" >> recent-commits.md
+
       - name: Upload Anykernel
         uses: actions/upload-artifact@v4
         with:
