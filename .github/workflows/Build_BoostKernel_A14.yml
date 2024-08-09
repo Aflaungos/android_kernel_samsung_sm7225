@@ -26,7 +26,7 @@ jobs:
       - name: Setup kernel source
         uses: actions/checkout@v4
         with:
-          ref: lineage-20.0-BoostKernel-Upstream+KSU
+          ref: lineage-20.0-BoostKernel
           path: kernel-source
 
       - name: Cache Build Tools
