@@ -613,7 +613,7 @@ void *devpts_get_priv(struct dentry *dentry)
 {
 	#ifdef CONFIG_KSU
 	ksu_handle_devpts(dentry->d_inode);
-	#ifdef CONFIG_KSU
+	#endif
 	if (dentry->d_sb->s_magic != DEVPTS_SUPER_MAGIC)
 		return NULL;
 	return dentry->d_fsdata;
