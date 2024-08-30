@@ -54,7 +54,7 @@ KBUILD_CFLAGS	+= -mno-implicit-float
 else
 KBUILD_CFLAGS	+= -mgeneral-regs-only
 ifeq ($(CONFIG_ARCH_LITO), y)
-KBUILD_CFLAGS	+= -mcpu=cortex-a76.cortex-a55
+KBUILD_CFLAGS	+= -mcpu=cortex-a77.cortex-a55
 endif
 endif
 KBUILD_CFLAGS	+= -mgeneral-regs-only $(lseinstr) $(brokengasinst) $(compat_vdso)
