@@ -293,7 +293,7 @@ static inline void drm_dev_dbg(const struct device *dev, unsigned int category,
 {
 }
 #else
-static inline void drm_dev_dbg(const struct device *dev, enum drm_debug_category category,
+static inline void drm_dev_dbg(const struct device *dev, unsigned int category,
 		 const char *format, ...) { }
 #endif
 #ifdef CONFIG_DRM_DEBUG_PRINT
