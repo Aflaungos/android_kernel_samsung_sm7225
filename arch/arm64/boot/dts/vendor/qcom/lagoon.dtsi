@@ -325,7 +325,7 @@
 	};
 
 	chosen {
-		bootargs = "nodebugmon noirqdebug rcupdate.rcu_normal_after_boot=1 quiet rcu_nocbs=0-7 kpti=off cgroup_disable=pressure";
+		bootargs = "nodebugmon noirqdebug rcupdate.rcu_normal_after_boot=1 quiet rcu_nocbs=0-7 kpti=off cgroup_disable=pressure nosoftlockup mce=ignore_ce";
 	};
 
 	soc: soc { };
