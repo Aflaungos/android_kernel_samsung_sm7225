@@ -24,6 +24,7 @@
 #include <linux/input/mt.h>
 #include <linux/of_gpio.h>
 #include <linux/of_irq.h>
+#include <uapi/linux/sched/types.h>
 
 #include "nt36xxx.h"
 #if NVT_TOUCH_ESD_PROTECT
@@ -2560,6 +2561,13 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 {
 	uint8_t point_data[POINT_DATA_LEN + 1 + DUMMY_BYTES] = {0};
 	int ret = -1;
+
+	static struct task_struct *touch_task = NULL;
+	struct sched_param par = { .sched_priority = MAX_RT_PRIO / 2};
+	if (touch_task == NULL) {
+		touch_task = current;
+		sched_setscheduler_nocheck(touch_task, SCHED_FIFO, &par);
+	}
 
 #if IS_ENABLED(CONFIG_INPUT_SEC_SECURE_TOUCH)
 	if (secure_filter_interrupt(ts) == IRQ_HANDLED) {
