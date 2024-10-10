@@ -1244,7 +1244,7 @@
 			};
 
 			modem_skin_trip1: modem-skin-trip1 {
-				temperature = <51000>;
+				temperature = <50000>;
 				hysteresis = <4000>;
 				type = "passive";
 			};
@@ -1261,20 +1261,8 @@
 				type = "passive";
 			};
 
-			gold_trip0: gold-trip0 {
-				temperature = <750000>;
-				hysteresis = <0>;
-				type = "passive";
-			};
-
-			gold_trip1: gold-trip1 {
-				temperature = <60000>;
-				hysteresis = <0>;
-				type = "passive";
-			};
-
-			gold_trip2: gold-trip2 {
-				temperature = <55000>;
+			gold_trip: gold-trip {
+				temperature = <70000>;
 				hysteresis = <0>;
 				type = "passive";
 			};
@@ -1292,7 +1280,7 @@
 			};
 
 			gpu_skin_trip: gpu-skin-trip {
-				temperature = <80000>;
+				temperature = <50000>;
 				hysteresis = <3000>;
 				type = "passive";
 			};
@@ -1303,20 +1291,8 @@
 				type = "passive";
 			};
 
-			silver_trip1: silver-trip1 {
-				temperature = <75000>;
-				hysteresis = <0>;
-				type = "passive";
-			};
-
-			silver_trip2: silver-trip2 {
-				temperature = <60000>;
-				hysteresis = <0>;
-				type = "passive";
-			};
-
-			silver_trip3: silver-trip3 {
-				temperature = <55000>;
+			silver_trip: silver-trip {
+				temperature = <70000>;
 				hysteresis = <0>;
 				type = "passive";
 			};
@@ -1328,65 +1304,36 @@
 			};
 
 			cx_emer_trip: cx-emer-trip {
-				temperature = <85000>;
+				temperature = <50000>;
 				hysteresis = <4000>;
 				type = "passive";
 			};
 		};
 
 		cooling-maps {
-			skin_cpugold0 {
-				trip = <&gold_trip2>;
-					/* throttle from fmax to 1900000KHz */
-				cooling-device = <&CPU6 THERMAL_NO_LIMIT
-							(THERMAL_MAX_LIMIT-8)>;
-			};
-
-			skin_cpugold1 {
-				trip = <&gold_trip1>;
+			skin_cpu6 {
+				trip = <&gold_trip>;
 					/* throttle from fmax to 1555200KHz */
 				cooling-device = <&CPU6 THERMAL_NO_LIMIT
 							(THERMAL_MAX_LIMIT-6)>;
 			};
 
-			skin_cpugold2 {
-				trip = <&gold_trip0>;
-					/* throttle from fmax to 1248000KHz */
-				cooling-device = <&CPU6 THERMAL_NO_LIMIT
-							(THERMAL_MAX_LIMIT-4)>;
-			};
-
-			skin_cpusilver0 {
-				trip = <&silver_trip3>;
-					/* throttle from fmax to 1612000KHz */
-				cooling-device = <&CPU0 THERMAL_NO_LIMIT
-							(THERMAL_MAX_LIMIT-8)>;
-			};
-
-			skin_cpusilver1 {
-				trip = <&silver_trip2>;
-					/* throttle from fmax to 1324000KHz */
+			skin_cpu0 {
+				trip = <&silver_trip>;
+					/* throttle from fmax to 1516800KHz */
 				cooling-device = <&CPU0 THERMAL_NO_LIMIT
 							(THERMAL_MAX_LIMIT-6)>;
-			};
-
-			skin_cpusilver2 {
-				trip = <&silver_trip1>;
-					/* throttle from fmax to 1017000KHz */
-				cooling-device = <&CPU0 THERMAL_NO_LIMIT
-							(THERMAL_MAX_LIMIT-4)>;
 			};
 
 			skin_gpu {
 				trip = <&gpu_skin_trip>;
 					/* throttle to 650000000Hz */
 				cooling-device = <&msm_gpu (THERMAL_MAX_LIMIT-4)
-							(THERMAL_MAX_LIMIT-4)>;
+						(THERMAL_MAX_LIMIT-4)>;
 			};
 
 			skin_gpu_emrg {
 				trip = <&cx_emer_trip>;
-					/* throttle to 430000000Hz */
 				cooling-device = <&msm_gpu (THERMAL_MAX_LIMIT-2)
 							(THERMAL_MAX_LIMIT-2)>;
 			};
