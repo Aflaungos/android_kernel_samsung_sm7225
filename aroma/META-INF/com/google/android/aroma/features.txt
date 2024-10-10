@@ -1,0 +1,17 @@
+• Adrenoboost
+• Panel Ultra Low Power State (ULPS)
+• Debbuging stuff NUKED
+• Added more I/O Schedulers
+• Fsync and CRC Control (Use a Kernel Manager)
+• Better doze
+• GPU, CPU, Display, IO Improvements
+• Simple lmk (Low Memory Killer by KernelToast)
+• Better Thermals
+• Nuked QCOM Rx Wakelock (Major Battery Leak)
+• Latest KernelSU
+• Upstreamed to version 4.19.257   
+• Multi-gen LRU
+• Anxiety I/O Scheduler
+• TEO CPU idle governor
+• -O3 Optimization
+• ... many more

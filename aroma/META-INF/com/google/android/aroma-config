@@ -1,0 +1,271 @@
+﻿### LICENSE:
+#
+# Copyright (C) 2011 Ahmad Amarullah ( http://amarullz.com/ )
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+### FILE INFO:
+#
+# AROMA Installer 2.70 - AROMA Installer Test Script Configuration
+#       (c) 2011-2012 by Ahmad Amarullah
+#           amarullz - xda-developers
+#           http://www.amarullz.com/
+#
+#       Binary Version  : 3.00
+#       Binary Codename : Flamboyan
+#
+
+##
+# Initializing Informations
+#
+ini_set("force_colorspace", "rgba");
+
+ini_set("rom_name",    "BoostKernel");
+ini_set("rom_author",  "Mrsiri");
+ini_set("rom_device",  "Samsung Galaxy M23/F23");
+
+
+#
+# Show Simple Splash for 3 seconds
+#
+splash(3000, "logo");
+
+#
+# Show Animated Splash
+#
+# anisplash(4, "splash/a1", 500, "splash/a2", 30, "splash/a3", 30, "splash/a4", 30, "splash/a5", 30, "splash/a6", 30);
+
+#
+# Set Small Font to Support all fonts
+#
+fontresload( "0", "ttf/Roboto-Regular.ttf;", "13" );
+fontresload( "1", "ttf/Roboto-Regular.ttf;", "16" );
+
+#
+# Set theme
+#
+theme("BoostKernel");
+
+#
+# Show information about kernel
+#
+ini_set("text_next", "Start");
+ini_set("icon_next", "@next");
+viewbox(
+" WELCOME \t\t\t\t\t\t",
+" INFORMATION ABOUT THIS KERNEL:\n\n"+
+" NAME  \t\t\t: <b><#selectbg_g>BoostKernel</#></b>\n"+
+" DEVELOPER \t\t: <b><#selectbg_g>Mrsiri</#></b>\n"+
+" DEVICE \t\t\t: <b><#selectbg_g>"+sysprop("ro.product.device")+"</#></b>\n\n\n"+
+"\tPRESS START TO PROCEDE",
+"@welcome"
+);
+
+#
+# MAIN MENU- INSTALLER
+#
+# Change the Next button text to "none"
+ini_set("text_next", " ");
+ini_set("icon_next", "@none");
+menubox(
+  #-- Title
+    "MAIN MENU \t\t\t\t\t\t",
+  
+  #-- Sub Title
+    "BoostKernel Aroma Installer",
+  
+  #-- Icon
+    "@welcome",
+  
+  #-- Will be saved in /tmp/aroma/menu.prop
+    "menu.prop",
+
+     #-------------------------+-----------------[ Menubox Items ]-------------------------+---------------#
+     # TITLE                   |  SUBTITLE                                                 |   Item Icons  #
+     #-------------------------+-----------------------------------------------------------+---------------#  
+  
+    "Install",      		  "Installs kernel, dtb, dtbo & spectrum",    "@install",      #-- selected.0 = 1
+    "System Info",                "View your device's specs",                 "@info",         #-- selected.0 = 3
+    "ChangeLog",                  "Changelog for this update",                "@license",      #-- selected.0 = 4
+    "Full feature list",          "View all features of BoostKernel",         "@license",      #-- selected.0 = 5
+    "Quit Installer",             "Go back to recovery",                      "@exit",         #-- selected.0 = 6
+    "Reboot",                     "Reboot the device",                        "@reboot"        #-- selected.0 = 7
+
+);
+
+
+#
+# Default Installation
+#
+if (prop("menu.prop","selected")=="1") then
+	  writetmpfile(
+	    "customize.prop",
+	    
+	    "selected.1=0\n"+
+	    "selected.2=0\n"+
+	    "selected.3=0\n"+
+	    "selected.4=0\n"+
+	    "selected.5=0\n"
+	  );
+
+	  # Change the Next button text to "Install Now"
+	  ini_set("text_next", "Install Now");
+	  ini_set("icon_next", "@installbutton");
+endif;
+
+#
+# System info
+#
+if (prop("menu.prop","selected")=="3") then
+  # Change the Next button text to "empty"
+    ini_set("text_next", " ");
+    ini_set("icon_next", "@empty");
+  #-- Show Please Wait
+  pleasewait("Getting System Informations...");
+
+  #-- Fetch System Information
+  setvar(
+    #-- Variable Name
+      "sysinfo",
+    
+    #-- Variable Value in GUI
+      "<@center><b>Your Device's Informations</b></@>\n\n"+
+      
+      "Model\t\t\t: <b><#selectbg_g>"+sysprop("ro.product.model")+"</#></b>\n"+
+      "Name\t\t\t: <b><#selectbg_g>"+sysprop("ro.product.name")+"</#></b>\n"+
+      "Device Name\t\t: <b><#selectbg_g>"+sysprop("ro.product.device")+"</#></b>\n"+
+      "Manufacturer\t\t: <b><#selectbg_g>"+sysprop("ro.product.manufacturer")+"</#></b>\n\n"+
+      
+      "CPU Arch\t\t: <b><#selectbg_g>"+sysprop("ro.product.cpu.abi")+"</#></b>\n\n"+
+      
+      "System Size\t: <b><#selectbg_g>"+getdisksize("/system_root","m")+" MB</#></b>\n"+
+        "\tFree\t\t: <b><#selectbg_g>"+getdiskfree("/system_root","m")+" MB</#></b>\n\n"+
+      "Data Size\t\t: <b><#selectbg_g>"+getdisksize("/data","m")+" MB</#></b>\n"+
+        "\tFree\t\t: <b><#selectbg_g>"+getdiskfree("/data","m")+" MB</#></b>\n\n"+
+      "Vendor Size\t: <b><#selectbg_g>"+getdisksize("/vendor","m")+" MB</#></b>\n"+
+        "\tFree\t\t: <b><#selectbg_g>"+getdiskfree("/vendor","m")+" MB</#></b>\n\n"+
+      "Product Size\t: <b><#selectbg_g>"+getdisksize("/product","m")+" MB</#></b>\n"+
+        "\tFree\t\t: <b><#selectbg_g>"+getdiskfree("/product","m")+" MB</#></b>\n\n"+
+      "Cache Size\t: <b><#selectbg_g>"+getdisksize("/cache","m")+" MB</#></b>\n"+
+        "\tFree\t\t: <b><#selectbg_g>"+getdiskfree("/cache","m")+" MB</#></b>\n\n"+
+      "OMR Size\t\t: <b><#selectbg_g>"+getdisksize("/omr","m")+" MB</#></b>\n"+
+        "\tFree\t\t: <b><#selectbg_g>"+getdiskfree("/omr","m")+" MB</#></b>\n\n"+
+      "SD card Size\t: <b><#selectbg_g>"+getdisksize("/sdcard1","m")+" MB</#></b>\n"+
+        "\tFree\t\t: <b><#selectbg_g>"+getdiskfree("/sdcard1","m")+" MB</#></b>\n\n"+
+
+      ""
+  );
+  
+  #-- Show Textbox
+  textbox(
+    #-- Title
+      "DEVICE SPECS \t\t\t\t\t\t",
+    
+    #-- Icon
+      "@info",
+    
+    #-- Text
+      getvar("sysinfo")
+  );
+   # Change the "none" button text back to "Next"
+     ini_set("text_next", "Next");
+     ini_set("icon_next", "@next");
+endif;
+
+#
+# CHANGELOG
+#
+if (prop("menu.prop","selected")=="4") then
+ textdialog("BoostKernel Changelog", resread("changelog.txt"), "Close");
+  #-- Back to Menu
+  back("1");
+endif;
+
+#
+# FULL FEATURE LIST
+#
+if (prop("menu.prop","selected")=="5") then
+ textdialog("BoostKernel Feature List", resread("features.txt"), "Close");
+  #-- Back to Menu
+  back("1");
+endif;
+
+#
+# QUIT INSTALLER
+#
+if (prop("menu.prop","selected")=="6") then
+
+#-- Exit
+  if
+    confirm(
+    #-- Title
+      "Exit",
+    #-- Text
+      "Are you sure you want to exit BoostKernel Installer?",
+    #-- Icon (Optional)
+      "@alert"
+    )=="yes"
+  then
+    #-- Exit 
+    exit("");
+  else
+    #-- Back to Menu
+    back("1");
+  endif;
+endif;
+
+#
+# Reboot
+#
+if (prop("menu.prop","selected")=="7") then
+  if
+    confirm(
+      "Reboot",
+      "Are you sure you want to reboot?",
+      "@alert"
+    )=="yes"
+  then
+    reboot("now");
+  else
+    back("1");
+  endif;
+endif;
+
+#
+# Goes to installation process
+#
+  ini_set("text_next", "Exit");
+  ini_set("icon_next", "@exit");
+setvar("retstatus",
+install(
+"",
+"<@center><b>INSTALLING. PLEASE WAIT...</b></@>",
+"@install",
+"<@center><b>INSTALLATION HAS FINISHED!</b></@>"
+)
+);
+textdialog("See you again!", resread("finish.txt"), "OK");
+if
+    confirm(
+      "Reboot",
+      "Do you want to reboot?",
+      "@alert"
+    )=="yes"
+  then
+    reboot("now");
+  else
+    exit("");
+endif;
+
+
+#---- FINISH

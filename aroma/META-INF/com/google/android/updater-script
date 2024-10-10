@@ -1,0 +1,18 @@
+
+set_progress(0.1);
+package_extract_dir("kernel", "/tmp/kernel");
+package_extract_dir("tools", "/tmp/tools");
+
+set_perm_recursive(0, 0, 0755, 0755, "/tmp/tools");
+
+###### DEFAULT INSTALLATION MENU
+### Install kernel base
+run_program("/tmp/tools/busybox", "sh", "/tmp/kernel/update-binary", "dummy", "1", "/tmp/kernel/AnyKernelFile.zip");
+set_progress(0.9);
+###### END OF DEFAULT INSTALLATION MENU
+
+delete_recursive("/tmp/kernel");
+delete_recursive("/tmp/tools");
+set_progress(1.0);
+ui_print(" ");
+ui_print("- Installation completed.");
