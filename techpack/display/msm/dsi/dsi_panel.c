@@ -779,25 +779,25 @@ static int dsi_panel_power_off(struct dsi_panel *panel)
         usleep_range(vdd->dtsi_data.samsung_dsi_off_reset_delay,
                 vdd->dtsi_data.samsung_dsi_off_reset_delay);
 
-	if (vdd->off_delay.update) {
-		int i;
-		int count = vdd->off_delay.update_count < panel->power_info.count ?
-				vdd->off_delay.update_count : panel->power_info.count;
+    if (vdd->off_delay.update) {
+	int i;
+	int count = vdd->off_delay.update_count < panel->power_info.count ?
+			vdd->off_delay.update_count : panel->power_info.count;
 
-		DSI_INFO("update power off delay, count: %d (%d, %d)\n", count,
-				vdd->off_delay.update_count,
-				panel->power_info.count);
+	DSI_INFO("update power off delay, count: %d (%d, %d)\n", count,
+			vdd->off_delay.update_count,
+			panel->power_info.count);
 
-		for (i = 0; i < count; i++) {
-			DSI_INFO("[%d] %d -> %d\n", i,
-				panel->power_info.vregs[i].post_off_sleep,
-				vdd->off_delay.delay[i]);
-			panel->power_info.vregs[i].post_off_sleep =
-				vdd->off_delay.delay[i];
-		}
-
-		vdd->off_delay.update = false;
+	for (i = 0; i < count; i++) {
+		DSI_INFO("[%d] %d -> %d\n", i,
+			panel->power_info.vregs[i].post_off_sleep,
+			vdd->off_delay.delay[i]);
+		panel->power_info.vregs[i].post_off_sleep =
+			vdd->off_delay.delay[i];
 	}
+
+	vdd->off_delay.update = false;
+    }
 
 	/* Reset regulator off when aot_reset_regulator enabled */
 	if (vdd->aot_reset_regulator || vdd->aot_reset_regulator_late) {

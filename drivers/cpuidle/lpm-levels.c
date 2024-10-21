@@ -251,7 +251,7 @@ static int lpm_starting_cpu(unsigned int cpu)
 	return 0;
 }
 
-static void calculate_next_wakeup(uint32_t *next_wakeup_us,
+static void __maybe_unused calculate_next_wakeup(uint32_t *next_wakeup_us,
 				  uint32_t next_event_us,
 				  uint32_t lvl_latency_us,
 				  s64 sleep_us)
@@ -969,7 +969,7 @@ static const struct platform_s2idle_ops lpm_s2idle_ops = {
 static int lpm_probe(struct platform_device *pdev)
 {
 	int ret;
-	unsigned int cpu;
+	unsigned int __maybe_unused cpu;
 	struct kobject *module_kobj = NULL;
 
 	get_online_cpus();

@@ -56,11 +56,59 @@ STD=`echo -e "\033[0m"`		# Clear colour
 ####################### Devices List #########################
 
 SM_M236B() {
-	CODENAME=M236
+	DEVICE_NAME="Samsung Galaxy M23/F23 5G"
+	CODENAME=SM-M236B/SM-E236B
 	DEFCONFIG=vendor/m23xq_eur_open_defconfig
 }
 
 ################### Executable functions #######################
+
+CONTINUE() {
+	SM_M236B
+	sleep 0.3
+    	echo " ${BLUE}"
+	echo " __________                       __   ____  __.                         .__     "
+	echo " \______   \ ____   ____  _______/  |_|    |/ _|___________  ____   ____ |  |    "
+	echo "  |    |  _//  _ \ /  _ \/  ___/\   __\      <_/ __ \_  __ \/    \_/ __ \|  |    "
+	echo "  |    |   (  <_> |  <_> )___ \  |  | |    |  \  ___/|  | \/   |  \  ___/|  |__  "
+	echo "  |______  /\____/ \____/____  > |__| |____|__ \___  >__|  |___|  /\___  >____/  "
+	echo "         \/                  \/               \/   \/           \/     \/        "
+	echo " "
+	echo "                      BoostKernel for $CODENAME ${STD}                           "
+	echo " "
+	echo " "
+	echo " "
+	echo " "
+    read -p "${BLUE}Do you wish to continue last build (Dirty build)? (y/n)? " yn
+    case $yn in
+        [Yy]* )
+	    if [ -e "out" ]; then
+		echo -e "/out folder found! Building dirty..."
+            	export LOCALVERSION=-🔥⚙️BoostKernelv$KERNELVERSION⚙️🔥
+            	CLANG="${HOME}/linux-x86-main/clang-r487747c/bin"
+            	export CLANG_TRIPLE=aarch64-linux-gnu-
+            	export PATH="$CLANG:$PATH"
+            	make -j$CORES O=out ARCH=arm64 SUBARCH=arm64 CC=clang LLVM_IAS=1 LLVM=1 $DEFCONFIG > /dev/null
+            	make -j$CORES O=out \
+                	ARCH=arm64 \
+                	SUBARCH=arm64 \
+                	CC=clang \
+                	LLVM_IAS=1 LLVM=1
+		return 0
+	    else
+		echo "${RED}No /out folder found!" >&2
+		return
+	    fi
+            ;;
+        [Nn]* ) 
+            echo "Building Clean..."
+	    return
+            ;;
+        * ) 
+            echo "Please choose Y or N."
+            ;;
+    esac
+}
 
 CLEAN_OUT() {
 	echo " ${ON_BLUE}Cleaning kernel source ${STD}"
@@ -102,11 +150,11 @@ ZIPPIFY() {
 			echo -e " "
 
 			# Copy Image, dtb.img and dtbo.img to anykernel directory
-			cp -f out/arch/arm64/boot/Image Anykernel/Image
+			cp -f out/arch/arm64/boot/Image Anykernel/
 
-			cp -f out/arch/arm64/boot/dts/vendor/qcom/lagoon.dtb Anykernel/dtb.img
+			cp -f out/arch/arm64/boot/dts/vendor/qcom/lagoon.dtb Anykernel/
 
-			cp -f out/arch/arm64/boot/dtbo.img Anykernel/dtbo.img
+			cp -f out/arch/arm64/boot/dtbo.img Anykernel/
 
 			# Go to anykernel directory
 			cd Anykernel
@@ -228,9 +276,6 @@ COMMON_STEPS() {
 	CLANG_BUILD
 	echo " ${STD}"
 	sleep 1
-	cp -f out/arch/$ARCH/boot/Image arch/$ARCH/boot/Image
-	cp -f out/arch/$ARCH/boot/dtb.img arch/$ARCH/boot/dtb.img
-	cp -f out/arch/$ARCH/boot/dtbo.img arch/$ARCH/boot/dtbo.img
 	ZIPPIFY
 	sleep 1
 	AROMA
@@ -249,43 +294,42 @@ COMMON_STEPS() {
 	echo "  |______  /\____/ \____/____  > |__| |____|__ \___  >__|  |___|  /\___  >____/  "
 	echo "         \/                  \/               \/   \/           \/     \/        "
 	echo " "
-	echo "                         BoostKernel for $CODENAME ${STD}                        "
+	echo "                                 Build Complete.                                 "
 	echo " "
 }
 
 KERNELVERSION_SELECT() {
 	read -p " Please enter the Kernel Version: ${STD}" kernel_version
 	export KERNELVERSION="$kernel_version"
-	echo "KERNELVERSION is set to: $KERNELVERSION"
+	echo "${BLUE}KERNELVERSION is set to: $KERNELVERSION"
 	sleep 1
 }
 
 BUILD_KERNEL() {
 	clear
-	CLEAN_OUT
+	CONTINUE
+	sleep 1
+	clear
+	if [ $? -ne 0 ]; then
+        	echo "Skipping clear /out folder..."
+    	else
+        	CLEAN_OUT
+    	fi
 	sleep 1
 	clear
 	USER
 	clear
-	echo "${BLUE}******************************************************"
-	echo "*                                                        *"
-	echo "*             $PROJECT_NAME Build Script                 *"
-	echo "*                  Developer: Chatur                     *"
-	echo "*            Co-Developers: Gabriel, Royna               *"
-	echo "*              Edited by Mrsiri ${GREEN}                 *"
-	echo "*                                                        *"
-	echo "**********************************************************"
-	echo " Some informations about parameters set:			"
-	echo -e "    > Architecture: $ARCH				"
-	echo "    > Jobs: $CORES					"
-	echo "    > Build user: $KBUILD_BUILD_USER			"
-	echo "    > Build machine: $KBUILD_BUILD_HOST			"
+	echo "*******************************************************"
+	echo "*           Some informations about parameters set:	*"
+	echo -e "* > Architecture: $ARCH				*"
+	echo "*    > Num. Cores: $CORES					*"
+	echo "*    > Build user: $KBUILD_BUILD_USER			*"
+	echo "*    > Build machine: $KBUILD_BUILD_HOST			*"
 	echo -e "*******************************************************"
 	echo " "
 	echo " ${STD}"
 	KERNELVERSION_SELECT
 	echo " "
-	SM_M236B
 	COMMON_STEPS
 }
 

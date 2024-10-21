@@ -2429,10 +2429,11 @@ static void sde_crtc_frame_event_work(struct kthread_work *work)
 			sde_crtc->retire_frame_event_time = fevent->ts;
 			sysfs_notify_dirent(sde_crtc->retire_frame_event_sf);
 		}
-		/* this api should be called without spin_lock */
-		_sde_crtc_retire_event(fevent->connector, fevent->ts,
-				(fevent->event & SDE_ENCODER_FRAME_EVENT_ERROR)
-				? SDE_FENCE_SIGNAL_ERROR : SDE_FENCE_SIGNAL);
+		
+	/* this api should be called without spin_lock */
+	_sde_crtc_retire_event(fevent->connector, fevent->ts,
+			(fevent->event & SDE_ENCODER_FRAME_EVENT_ERROR)
+			? SDE_FENCE_SIGNAL_ERROR : SDE_FENCE_SIGNAL);
 
 	if (fevent->event & SDE_ENCODER_FRAME_EVENT_PANEL_DEAD)
 		SDE_ERROR("crtc%d ts:%lld received panel dead event\n",

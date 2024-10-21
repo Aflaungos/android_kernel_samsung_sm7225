@@ -457,7 +457,7 @@ static const struct sysfs_ops sysfs_ops = {
 	.store	= store,
 };
 
-static struct kobj_type ktype_core_ctl = {
+static struct kobj_type __maybe_unused ktype_core_ctl = {
 	.sysfs_ops	= &sysfs_ops,
 	.default_attrs	= default_attrs,
 };
@@ -1161,7 +1161,7 @@ static void __ref do_core_ctl(struct cluster_data *cluster)
 	}
 }
 
-static int __ref try_core_ctl(void *data)
+static int __ref __maybe_unused try_core_ctl(void *data)
 {
 	struct cluster_data *cluster = data;
 	unsigned long flags;
@@ -1237,12 +1237,12 @@ static int isolation_cpuhp_state(unsigned int cpu,  bool online)
 	return 0;
 }
 
-static int core_ctl_isolation_online_cpu(unsigned int cpu)
+static int __maybe_unused core_ctl_isolation_online_cpu(unsigned int cpu)
 {
 	return isolation_cpuhp_state(cpu, true);
 }
 
-static int core_ctl_isolation_dead_cpu(unsigned int cpu)
+static int __maybe_unused core_ctl_isolation_dead_cpu(unsigned int cpu)
 {
 	return isolation_cpuhp_state(cpu, false);
 }
