@@ -1,4 +1,5 @@
-#!/bin/sudo bash
+#!/bin/bash
+
 #
 # Custom build script by Chatur27, Gabriel2392 and roynatech2544 @Github - 2022
 #
@@ -58,11 +59,6 @@ SM_M236B() {
 	CODENAME=M236
 	DEFCONFIG=vendor/m23xq_eur_open_defconfig
 }
-
-######################## Android OS list #######################
-
-android_oneui6.1="Support for OneUI 6.1 or GSI using U vendor"
-
 
 ################### Executable functions #######################
 
