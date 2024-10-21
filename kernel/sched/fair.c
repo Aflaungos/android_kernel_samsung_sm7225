@@ -6339,7 +6339,11 @@ stune_util(int cpu, unsigned long other_util,
 	unsigned long fps_util = per_cpu(fps_boosted_util, cpu);
 #endif
 	trace_sched_boost_cpu(cpu, util, margin);
-	boosted_util = util + margin;
+
+	if (sched_feat(SCHEDTUNE_BOOST_UTIL))
+		boosted_util = util + margin;
+	else
+		boosted_util = util;
 
 #ifdef CONFIG_SEC_PERF_MANAGER
 	boosted_util = max(fps_util, boosted_util);
