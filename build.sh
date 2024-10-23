@@ -95,13 +95,14 @@ CONTINUE() {
                 		SUBARCH=arm64 \
                 		CC=clang \
                 		LLVM_IAS=1 LLVM=1
-				return 0
+				export DIRTY_BUILD=1
 	   		else
 				return
 	    		fi
             		;;
         	[Nn]* ) 
             		echo "Building Clean..."
+			export DIRTY_BUILD=0
 	    		return
             		;;
         	* ) 
@@ -128,7 +129,7 @@ CLEAN_OUT() {
 #	fi
 }
 
-DTB_BUILD() {
+DTBO_BUILD() {
 	$(pwd)/tools/mkdtimg create $(pwd)/out/arch/arm64/boot/dtbo.img --page_size=4096 $(find out/arch/arm64/boot/dts/samsung/m23/m23xq/ -name *.dtbo)
 }
 
@@ -282,12 +283,11 @@ COMMON_STEPS() {
 	CLANG_BUILD
 	echo " ${STD}"
 	sleep 1
+	DTBO_BUILD
+	sleep 1
 	ZIPPIFY
 	sleep 1
 	AROMA
-	sleep 1
-	echo " "
-	CLEAN_OUT
 	sleep 1
 	echo " "
 	TELEGRAM_UPLOAD
@@ -316,7 +316,7 @@ BUILD_KERNEL() {
 	CONTINUE
 	sleep 1
 	clear
-	if [ $? -ne 0 ]; then
+	if [ "$DIRTY_BUILD" -eq 1 ]; then
         	echo "Skipping clear /out folder..."
     	else
         	CLEAN_OUT

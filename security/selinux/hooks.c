@@ -131,6 +131,8 @@ static int __init selinux_enabled_setup(char *str)
 	return 1;
 }
 __setup("selinux=", selinux_enabled_setup);
+#else
+int selinux_enabled = 1;
 #endif
 
 static unsigned int selinux_checkreqprot_boot =
