@@ -210,10 +210,7 @@ EXPORT_SYMBOL(unregister_lsm_notifier);
  */
 
 /*
- * security_integrity_current() is added,
- * which has a dependency of CONFIG_KDP_CRED.
  * security_integrity_current is added to check integrity of credential context.
- * if CONFIG_KDP_CRED is disabled, it will always return 0.
  */
 #define call_void_hook(FUNC, ...)				\
 	do {							\
