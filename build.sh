@@ -150,11 +150,13 @@ ZIPPIFY() {
 			echo -e " "
 
 			# Copy Image, dtb.img and dtbo.img to anykernel directory
-			cp -f out/arch/arm64/boot/Image Anykernel/
+			cp -f /home/mrsiri/android_kernel_samsung_sm7225/out/arch/arm64/boot/Image /home/mrsiri/android_kernel_samsung_sm7225/AnyKernel/Image
 
-			cp -f out/arch/arm64/boot/dts/vendor/qcom/lagoon.dtb Anykernel/
+			cp -f /home/mrsiri/android_kernel_samsung_sm7225/out/arch/arm64/boot/dts/vendor/qcom/lagoon.dtb /home/mrsiri/android_kernel_samsung_sm7225/AnyKernel/lagoon.dtb
 
-			cp -f out/arch/arm64/boot/dtbo.img Anykernel/
+			mv /home/mrsiri/android_kernel_samsung_sm7225/AnyKernel/lagoon.dtb /home/mrsiri/android_kernel_samsung_sm7225/AnyKernel/dtb
+
+			cp -f /home/mrsiri/android_kernel_samsung_sm7225/out/arch/arm64/boot/dtbo.img /home/mrsiri/android_kernel_samsung_sm7225/AnyKernel/dtbo.img
 
 			# Go to anykernel directory
 			cd Anykernel
