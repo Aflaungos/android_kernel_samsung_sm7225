@@ -20,6 +20,9 @@
 #include <linux/reset.h>
 #include <linux/debugfs.h>
 
+#undef dev_dbg
+#define dev_dbg dev_err
+
 /* QUSB2PHY_PWR_CTRL1 register related bits */
 #define PWR_CTRL1_POWR_DOWN		BIT(0)
 #define CLAMP_N_EN			BIT(1)
@@ -61,7 +64,22 @@
 #define LINESTATE_DP			BIT(0)
 #define LINESTATE_DM			BIT(1)
 
-#define BIAS_CTRL_2_OVERRIDE_VAL	0x28
+#if defined(CONFIG_SEC_A42XUQ_PROJECT)
+#define BIAS_CTRL_2_OVERRIDE_VAL    0x11
+#define BIAS_CTRL_2_OVERRIDE_VAL_HOST	0x19
+#elif defined(CONFIG_SEC_A42XQ_PROJECT)
+#define BIAS_CTRL_2_OVERRIDE_VAL	0x17
+#define BIAS_CTRL_2_OVERRIDE_VAL_HOST	0x17
+#elif defined(CONFIG_SEC_GTS7XLLITE_PROJECT) || defined(CONFIG_SEC_GTS7XLLITEWIFI_PROJECT)
+#define BIAS_CTRL_2_OVERRIDE_VAL	0x12
+#define BIAS_CTRL_2_OVERRIDE_VAL_HOST	0x14
+#elif defined(CONFIG_SEC_M23XQ_PROJECT)
+#define BIAS_CTRL_2_OVERRIDE_VAL	0x0f
+#define BIAS_CTRL_2_OVERRIDE_VAL_HOST	0x15
+#else
+#define BIAS_CTRL_2_OVERRIDE_VAL	0x14
+#define BIAS_CTRL_2_OVERRIDE_VAL_HOST	0x14
+#endif
 
 #define DEBUG_CTRL1_OVERRIDE_VAL	0x09
 
@@ -417,7 +435,7 @@ err_vdd:
 	return ret;
 }
 
-static void qusb_phy_get_tune1_param(struct qusb_phy *qphy)
+static void qusb_phy_get_tune1_param(struct qusb_phy *qphy, bool host)
 {
 	u8 reg;
 	u32 bit_mask = 1;
@@ -440,6 +458,12 @@ static void qusb_phy_get_tune1_param(struct qusb_phy *qphy)
 	qphy->tune_val = TUNE_VAL_MASK(qphy->tune_val,
 				qphy->efuse_bit_pos, bit_mask);
 	reg = readb_relaxed(qphy->base + qphy->phy_reg[PORT_TUNE1]);
+#if defined(CONFIG_SEC_GTS7XLLITE_PROJECT) || defined(CONFIG_SEC_GTS7XLLITEWIFI_PROJECT) \
+	|| defined(CONFIG_SEC_M23XQ_PROJECT)
+	/* specific model issue, use updated bias_ctrl2 for zero efuse */
+	if (!qphy->tune_val && host)
+		qphy->bias_ctrl2 = 0x19;
+#endif
 	reg = reg & 0x0f;
 	reg |= (qphy->tune_val << 4);
 
@@ -519,8 +543,7 @@ static void qusb_phy_host_init(struct usb_phy *phy)
 			qphy->host_init_seq_len, 0);
 
 	if (qphy->efuse_reg) {
-		if (!qphy->tune_val)
-			qusb_phy_get_tune1_param(qphy);
+		qusb_phy_get_tune1_param(qphy, true);
 	} else {
 		/* For non fused chips we need to write the TUNE1 param as
 		 * specified in DT otherwise we will end up writing 0 to
@@ -548,7 +571,7 @@ static void qusb_phy_host_init(struct usb_phy *phy)
 
 	if (qphy->refgen_north_bg_reg && qphy->override_bias_ctrl2)
 		if (readl_relaxed(qphy->refgen_north_bg_reg) & BANDGAP_BYPASS)
-			writel_relaxed(BIAS_CTRL_2_OVERRIDE_VAL,
+			writel_relaxed(BIAS_CTRL_2_OVERRIDE_VAL_HOST,
 				qphy->base + qphy->phy_reg[BIAS_CTRL_2]);
 
 	if (qphy->bias_ctrl2)
@@ -557,6 +580,14 @@ static void qusb_phy_host_init(struct usb_phy *phy)
 
 	/* Ensure above write is completed before turning ON ref clk */
 	wmb();
+
+	pr_info("%s():Setting qusb phy val: imp_ctrl1 %x, tune1 %x, tune2 %x, tune4 %x, bias_control2 %x\n",
+		__func__,
+		(readl_relaxed(qphy->base + 0x220) & 0xff),
+		(readl_relaxed(qphy->base + 0x240) & 0xff),
+		(readl_relaxed(qphy->base + 0x244) & 0xff),
+		(readl_relaxed(qphy->base + 0x24c) & 0xff),
+		(readl_relaxed(qphy->base + 0x198) & 0xff));
 
 	/* Require to get phy pll lock successfully */
 	usleep_range(150, 160);
@@ -621,8 +652,7 @@ static int qusb_phy_init(struct usb_phy *phy)
 		qusb_phy_write_seq(qphy->base, qphy->qusb_phy_init_seq,
 				qphy->init_seq_len, 0);
 	if (qphy->efuse_reg) {
-		if (!qphy->tune_val)
-			qusb_phy_get_tune1_param(qphy);
+		qusb_phy_get_tune1_param(qphy, false);
 
 		pr_debug("%s(): Programming TUNE1 parameter as:%x\n", __func__,
 				qphy->tune_val);
@@ -657,6 +687,14 @@ static int qusb_phy_init(struct usb_phy *phy)
 
 	/* Ensure above write is completed before turning ON ref clk */
 	wmb();
+
+	pr_info("%s():Setting qusb phy val: imp_ctrl1 %x, tune1 %x, tune2 %x, tune4 %x, bias_control2 %x\n",
+		__func__,
+		(readl_relaxed(qphy->base + 0x220) & 0xff),
+		(readl_relaxed(qphy->base + 0x240) & 0xff),
+		(readl_relaxed(qphy->base + 0x244) & 0xff),
+		(readl_relaxed(qphy->base + 0x24c) & 0xff),
+		(readl_relaxed(qphy->base + 0x198) & 0xff));
 
 	/* Require to get phy pll lock successfully */
 	usleep_range(150, 160);

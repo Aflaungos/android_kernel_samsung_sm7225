@@ -69,6 +69,9 @@ static void free_inode(struct inode *inode);
 static void evict_inode(struct inode *inode);
 
 static int incfs_setattr(struct dentry *dentry, struct iattr *ia);
+static int incfs_getattr(const struct path *path,
+			 struct kstat *stat, u32 request_mask,
+			 unsigned int query_flags);
 static ssize_t incfs_getxattr(struct dentry *d, const char *name,
 			void *value, size_t size);
 static ssize_t incfs_setxattr(struct dentry *d, const char *name,
@@ -161,7 +164,7 @@ static const struct file_operations incfs_log_file_ops = {
 
 static const struct inode_operations incfs_file_inode_ops = {
 	.setattr = incfs_setattr,
-	.getattr = simple_getattr,
+	.getattr = incfs_getattr,
 	.listxattr = incfs_listxattr
 };
 
@@ -897,14 +900,14 @@ static int init_new_file(struct mount_info *mi, struct dentry *dentry,
 		.dentry = dentry
 	};
 	new_file = dentry_open(&path, O_RDWR | O_NOATIME | O_LARGEFILE,
-			       mi->mi_owner);
+			       current_cred());
 
 	if (IS_ERR(new_file)) {
 		error = PTR_ERR(new_file);
 		goto out;
 	}
 
-	bfc = incfs_alloc_bfc(new_file);
+	bfc = incfs_alloc_bfc(mi, new_file);
 	fput(new_file);
 	if (IS_ERR(bfc)) {
 		error = PTR_ERR(bfc);
@@ -1025,7 +1028,7 @@ static int dir_relative_path_resolve(
 	if (dir_fd < 0)
 		return dir_fd;
 
-	dir_f = dentry_open(base_path, O_RDONLY | O_NOATIME, mi->mi_owner);
+	dir_f = dentry_open(base_path, O_RDONLY | O_NOATIME, current_cred());
 
 	if (IS_ERR(dir_f)) {
 		error = PTR_ERR(dir_f);
@@ -1903,10 +1906,13 @@ static int file_open(struct inode *inode, struct file *file)
 	struct file *backing_file = NULL;
 	struct path backing_path = {};
 	int err = 0;
+	const struct cred *old_cred;
 
 	get_incfs_backing_path(file->f_path.dentry, &backing_path);
-	backing_file = dentry_open(
-		&backing_path, O_RDWR | O_NOATIME | O_LARGEFILE, mi->mi_owner);
+	old_cred = override_creds(mi->mi_owner);
+	backing_file = dentry_open(&backing_path,
+			O_RDWR | O_NOATIME | O_LARGEFILE, current_cred());
+	revert_creds(old_cred);
 	path_put(&backing_path);
 
 	if (IS_ERR(backing_file)) {
@@ -2073,6 +2079,35 @@ static int incfs_setattr(struct dentry *dentry, struct iattr *ia)
 		ia->ia_mode &= ~0222;
 
 	return simple_setattr(dentry, ia);
+}
+
+static int incfs_getattr(const struct path *path,
+			 struct kstat *stat, u32 request_mask,
+			 unsigned int query_flags)
+{
+	struct inode *inode = d_inode(path->dentry);
+	generic_fillattr(inode, stat);
+	if (inode->i_ino < INCFS_START_INO_RANGE)
+		return 0;
+	stat->attributes &= ~STATX_ATTR_VERITY;
+	if (IS_VERITY(inode))
+		stat->attributes |= STATX_ATTR_VERITY;
+	stat->attributes_mask |= STATX_ATTR_VERITY;
+	if (request_mask & STATX_BLOCKS) {
+		struct kstat backing_kstat;
+		struct dentry_info *di = get_incfs_dentry(path->dentry);
+		int error = 0;
+		struct path *backing_path;
+		if (!di)
+			return -EFSCORRUPTED;
+		backing_path = &di->backing_path;
+		error = vfs_getattr(backing_path, &backing_kstat, STATX_BLOCKS,
+				    AT_STATX_SYNC_AS_STAT);
+		if (error)
+			return error;
+		stat->blocks = backing_kstat.blocks;
+	}
+	return 0;
 }
 
 static ssize_t incfs_getxattr(struct dentry *d, const char *name,

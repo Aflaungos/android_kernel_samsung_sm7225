@@ -364,7 +364,7 @@ enum mhi_cmd_type {
 #define MHI_RSCTRE_DATA_DWORD0(cookie) (cookie)
 #define MHI_RSCTRE_DATA_DWORD1 (MHI_PKT_TYPE_COALESCING << 16)
 
-#define MHI_RSC_MIN_CREDITS (8)
+#define MHI_RSC_MIN_CREDITS (10)
 
 enum MHI_CMD {
 	MHI_CMD_RESET_CHAN,
@@ -806,6 +806,12 @@ static inline void mhi_trigger_resume(struct mhi_controller *mhi_cntrl)
 	mhi_cntrl->runtime_get(mhi_cntrl, mhi_cntrl->priv_data);
 	mhi_cntrl->runtime_put(mhi_cntrl, mhi_cntrl->priv_data);
 	pm_wakeup_hard_event(&mhi_cntrl->mhi_dev->dev);
+}
+
+static inline bool is_valid_ring_ptr(struct mhi_ring *ring, dma_addr_t addr)
+{
+	return ((addr >= ring->iommu_base &&
+		addr < ring->iommu_base + ring->len) && (addr % 16 == 0));
 }
 
 /* queue transfer buffer */

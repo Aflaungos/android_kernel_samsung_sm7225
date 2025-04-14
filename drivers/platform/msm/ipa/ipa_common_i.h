@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (c) 2012-2019, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2020, The Linux Foundation. All rights reserved.
  */
 
 #include <linux/ipa_mhi.h>
@@ -101,6 +101,23 @@
 		struct ipa_active_client_logging_info log_info; \
 		IPA_ACTIVE_CLIENTS_PREP_SPECIAL(log_info, id_str); \
 		ipa_dec_client_disable_clks(&log_info); \
+	} while (0)
+
+#define IPA_ACTIVE_CLIENTS_INC_EP_NO_BLOCK(client) ({\
+	int __ret = 0; \
+	do { \
+		struct ipa_active_client_logging_info log_info; \
+		IPA_ACTIVE_CLIENTS_PREP_EP(log_info, client); \
+		__ret = ipa3_inc_client_enable_clks_no_block(&log_info); \
+	} while (0); \
+	(__ret); \
+})
+
+#define IPA_ACTIVE_CLIENTS_DEC_EP_NO_BLOCK(client) \
+	do { \
+		struct ipa_active_client_logging_info log_info; \
+		IPA_ACTIVE_CLIENTS_PREP_EP(log_info, client); \
+		ipa3_dec_client_disable_clks_no_block(&log_info); \
 	} while (0)
 
 /*
@@ -427,6 +444,8 @@ int ipa_disable_wdi_pipes(int ipa_ep_idx_tx, int ipa_ep_idx_rx);
 
 const char *ipa_get_version_string(enum ipa_hw_type ver);
 int ipa_start_gsi_channel(u32 clnt_hdl);
+
+bool ipa_pm_is_used(void);
 
 int ipa_smmu_store_sgt(struct sg_table **out_ch_ptr,
 		struct sg_table *in_sgt_ptr);
