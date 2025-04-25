@@ -2398,7 +2398,6 @@ void nvt_ts_proximity_report(uint8_t *data)
 	}
 
 	status = p_event_proximity->status;
-	status = status == 5 || !status;
 
 	input_info(true, &ts->client->dev,"proximity->status = %d\n", status);
 
