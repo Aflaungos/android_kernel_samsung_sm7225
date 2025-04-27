@@ -34,9 +34,4 @@ static inline size_t entry_tramp_text_size(void)
 	return __entry_tramp_text_end - __entry_tramp_text_start;
 }
 
-static inline size_t entry_tramp_text_size(void)
-{
-	return __entry_tramp_text_end - __entry_tramp_text_start;
-}
-
 #endif /* __ASM_SECTIONS_H */

@@ -139,13 +139,6 @@
 	.macro	csdb
 	hint	#20
 	.endm
-	
-/*
- * Clear Branch History instruction
- */
-	.macro clearbhb
-	hint	#22
-	.endm
 
 /*
  * Clear Branch History instruction
