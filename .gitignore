@@ -12,7 +12,6 @@
 .*
 *.a
 *.asn1.[ch]
-*.bin
 *.bz2
 *.c.[012]*.*
 *.dtb
@@ -135,12 +134,6 @@ all.config
 
 # fetched Android config fragments
 kernel/configs/android-*.cfg
-
-# vendor device tree directories
-arch/arm64/boot/dts/vendor/
-
-# Tech package directories
-techpack/
 
 # OUT folder
 out/
