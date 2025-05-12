@@ -2234,7 +2234,7 @@ int ext4_xattr_ibody_inline_set(handle_t *handle, struct inode *inode,
 	int error;
 
 	/* @fs.sec -- ec294112f1af9d4be72e6292e7e994e522fccbeb -- */
-	if (!EXT4_INODE_HAS_XATTR_SPACE(inode))
+	if (!EXT4_INODE_HAS_XATTR_SPACE(inode) ||
 			(void *) EXT4_XATTR_NEXT(s->first) >= s->end)
 		return -ENOSPC;
 
