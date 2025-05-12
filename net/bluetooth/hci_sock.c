@@ -976,7 +976,7 @@ static int hci_sock_ioctl(struct socket *sock, unsigned int cmd,
 
 	BT_DBG("cmd %x arg %lx", cmd, arg);
 
-	/* Make sure the cmd is valid before doing anything */
+	// Make sure the cmd is valid before doing anything
 	switch (cmd) {
 	case HCIGETDEVLIST:
 	case HCIGETDEVINFO:
@@ -1020,13 +1020,13 @@ static int hci_sock_ioctl(struct socket *sock, unsigned int cmd,
 	if (hci_sock_gen_cookie(sk)) {
 		struct sk_buff *skb;
 
-		/* Perform careful checks before setting the HCI_SOCK_TRUSTED
-		 * flag. Make sure that not only the current task but also
-		 * the socket opener has the required capability, since
-		 * privileged programs can be tricked into making ioctl calls
-		 * on HCI sockets, and the socket should not be marked as
-		 * trusted simply because the ioctl caller is privileged.
-		 */
+		// Perform careful checks before setting the HCI_SOCK_TRUSTED
+		// flag. Make sure that not only the current task but also
+		// the socket opener has the required capability, since
+		// privileged programs can be tricked into making ioctl calls
+		// on HCI sockets, and the socket should not be marked as
+		// trusted simply because the ioctl caller is privileged.
+
 		if (sk_capable(sk, CAP_NET_ADMIN))
 			hci_sock_set_flag(sk, HCI_SOCK_TRUSTED);
 
