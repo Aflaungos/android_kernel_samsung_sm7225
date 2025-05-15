@@ -598,7 +598,7 @@ static int __qcom_glink_rx_done(struct qcom_glink *glink,
 	bool reuse = intent->reuse;
 	int ret;
 
-	cmd.id = reuse ? RPM_CMD_RX_DONE_W_REUSE : RPM_CMD_RX_DONE;
+	cmd.id = reuse ? GLINK_CMD_RX_DONE_W_REUSE : GLINK_CMD_RX_DONE;
 	cmd.lcid = cid;
 	cmd.liid = iid;
 
@@ -1179,7 +1179,7 @@ static int qcom_glink_send_signals(struct qcom_glink *glink,
 {
 	struct glink_msg msg;
 
-	msg.cmd = cpu_to_le16(RPM_CMD_SIGNALS);
+	msg.cmd = cpu_to_le16(GLINK_CMD_SIGNALS);
 	msg.param1 = cpu_to_le16(channel->lcid);
 	msg.param2 = cpu_to_le32(sigs);
 
@@ -1278,7 +1278,7 @@ static irqreturn_t qcom_glink_native_intr(int irq, void *data)
 			qcom_glink_handle_intent_req_ack(glink, param1, param2);
 			qcom_glink_rx_advance(glink, ALIGN(sizeof(msg), 8));
 			break;
-		case RPM_CMD_SIGNALS:
+		case GLINK_CMD_SIGNALS:
 			qcom_glink_handle_signals(glink, param1, param2);
 			qcom_glink_rx_advance(glink, ALIGN(sizeof(msg), 8));
 			break;
