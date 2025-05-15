@@ -4740,8 +4740,9 @@ retry:
 	 * implementation of the compaction depends on the sufficient amount
 	 * of free memory (see __compaction_suitable)
 	 */
-	if ((did_some_progress > 0 && can_compact && ||
+	if ((did_some_progress > 0 ||
 			IS_ENABLED(CONFIG_HAVE_LOW_MEMORY_KILLER)) &&
+			can_compact &&
 			should_compact_retry(ac, order, alloc_flags,
 				compact_result, &compact_priority,
 				&compaction_retries))
