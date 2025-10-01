@@ -25,6 +25,15 @@
 #include <linux/of_gpio.h>
 #include <linux/of_irq.h>
 
+#if IS_ENABLED(CONFIG_SEC_PANEL_NOTIFIER)
+#include <linux/sec_panel_notifier.h>
+#else
+#include "../../../techpack/display/msm/samsung/ss_panel_notify.h"
+#endif
+
+extern int ss_panel_notifier_register(struct notifier_block *nb);
+extern int ss_panel_notifier_unregister(struct notifier_block *nb);
+
 #include "nt36xxx.h"
 #if NVT_TOUCH_ESD_PROTECT
 #include <linux/jiffies.h>
@@ -45,8 +54,6 @@ uint8_t esd_retry = 0;
 extern int32_t nvt_extra_proc_init(void);
 extern void nvt_extra_proc_deinit(void);
 #endif
-
-
 
 struct nvt_ts_data *ts;
 
@@ -1601,10 +1608,6 @@ static int nvt_parse_dt(struct device *dev)
 	input_info(true, dev, "%s: AOT mode %s\n",
 				__func__, platdata->enable_settings_aot ? "ON" : "OFF");
 
-	platdata->enable_sysinput_enabled = of_property_read_bool(np, "novatek,enable_sysinput_enabled");
-	input_info(true, dev, "%s: Sysinput enabled %s\n",
-				__func__, platdata->enable_sysinput_enabled ? "ON" : "OFF");
-
 	platdata->prox_lp_scan_enabled = of_property_read_bool(np, "novatek,prox_lp_scan_enabled");
 	input_info(true, dev, "%s: Prox LP Scan enabled %s\n",
 				__func__, platdata->prox_lp_scan_enabled ? "ON" : "OFF");
@@ -2399,12 +2402,28 @@ void nvt_ts_proximity_report(uint8_t *data)
 
 	status = p_event_proximity->status;
 
-	input_info(true, &ts->client->dev,"proximity->status = %d\n", status);
+	if (ts->power_status == LP_MODE_STATUS || !ts->touch_count) {
+		status = (status == 5 || !status);
+		input_info(true, &ts->client->dev,"proximity->status = %d\n", status);
+		ts->hover_event = status;
+		input_report_abs(ts->input_dev_proximity, ABS_MT_CUSTOM, status);
+		input_sync(ts->input_dev_proximity);
+		input_info(true, &ts->client->dev, "%s hover : %d\n", __func__, status);
 
-	input_info(true, &ts->client->dev, "%s hover : %d\n", __func__, status);
-	ts->hover_event = status;
-	input_report_abs(ts->input_dev_proximity, ABS_MT_CUSTOM, status);
-	input_sync(ts->input_dev_proximity);
+		if (ts->power_status == LP_MODE_STATUS) {
+			if (status == 0) {
+				if (ts->ear_detect_mode) {
+					set_prox_lp_scan_detect(ts, 1, true);
+					input_info(true, &ts->client->dev, "%s: enabled proximity scan (screen off, proximity near)\n", __func__);
+				}
+			} else {
+				if (ts->ear_detect_mode) {
+					set_prox_lp_scan_detect(ts, 0, true);
+					input_info(true, &ts->client->dev, "%s: disabled proximity scan (screen off, proximity far)\n", __func__);
+				}
+			}
+		}
+	}
 
 #if 0
 	switch (p_event_proximity->status) {
@@ -2862,6 +2881,27 @@ static void nvt_vbus_work(struct work_struct *work)
 	mutex_unlock(&ts->lock);
 }
 
+int nvt_panel_notifier_callback(struct notifier_block *n, unsigned long data, void *v)
+{
+	struct panel_state_data *d = (struct panel_state_data *)v;
+
+	if (data == PANEL_EVENT_STATE_CHANGED) {
+	    if (d->state == PANEL_ON) {
+	    	input_info(true, &ts->client->dev, "%s: Screen on, resume touch\n", __func__);
+		nvt_ts_resume(&ts->client->dev);
+	    } else if (d->state == PANEL_OFF) {
+		input_info(true, &ts->client->dev, "%s: Screen off, suspend touch\n", __func__);
+		nvt_ts_suspend(&ts->client->dev);
+	    }
+	}
+	return 0;
+}
+
+static struct notifier_block nvt_panel_notifier_callback_notifier = {
+	.notifier_call = nvt_panel_notifier_callback,
+	.priority = 1,
+};
+
 static int tsp_vbus_notification(struct notifier_block *nb,
 		unsigned long cmd, void *data)
 {
@@ -3058,6 +3098,8 @@ static int32_t nvt_ts_probe(struct spi_device *client)
 
 	mutex_init(&ts->lock);
 	mutex_init(&ts->xbuf_lock);
+
+	ss_panel_notifier_register(&nvt_panel_notifier_callback_notifier);
 
 	//---eng reset before TP_RESX high
 	ts->power_status = POWER_ON_STATUS;
@@ -3398,6 +3440,8 @@ static int32_t nvt_ts_remove(struct spi_device *client)
 	nvt_flash_proc_deinit();
 #endif
 
+	ss_panel_notifier_unregister(&nvt_panel_notifier_callback_notifier);
+
 #if IS_ENABLED(CONFIG_VBUS_NOTIFIER)
 	vbus_notifier_unregister(&ts->vbus_nb);
 #endif
@@ -3503,6 +3547,7 @@ static void nvt_ts_shutdown(struct spi_device *client)
 	ts->power_status = POWER_OFF_STATUS;
 
 	nvt_irq_enable(false);
+
 	pinctrl_configure(ts, false);
 
 	nvt_ts_sec_fn_remove(ts);
@@ -3877,6 +3922,10 @@ int32_t nvt_ts_resume(struct device *dev)
 	schedule_work(&ts->work_print_info.work);
 
 	input_info(true, &ts->client->dev, "%s : end\n", __func__);
+
+	input_info(true, &ts->client->dev, "%s : ed:%d, lp:%d, prox:%ld, test:%d, prox_in_aot:%d\n",
+			__func__, ts->ear_detect_mode, ts->lowpower_mode, ts->prox_power_off,
+			ts->lcdoff_test, ts->prox_in_aot);
 
 	return 0;
 }
