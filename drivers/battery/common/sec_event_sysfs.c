@@ -222,13 +222,10 @@ ssize_t sysfs_event_store_attrs(
 					"%s: enable smart switch slate mode : %d\n", __func__, x);
 			} else if (x == SEC_SLATE_MODE) {
 				sec_bat_set_current_event(battery, SEC_BAT_CURRENT_EVENT_SLATE, SEC_BAT_CURRENT_EVENT_SLATE);
-				sec_vote(battery->chgen_vote, VOTER_SLATE, true, SEC_BAT_CHG_MODE_BUCK_OFF);
 				dev_info(battery->dev,
 					"%s: enable slate mode : %d\n", __func__, x);
 			} else if (x == SEC_SLATE_OFF) {
 				sec_bat_set_current_event(battery, 0, SEC_BAT_CURRENT_EVENT_SLATE);
-				sec_vote(battery->chgen_vote, VOTER_SLATE, false, 0);
-				sec_vote(battery->chgen_vote, VOTER_SMART_SLATE, false, 0);
 				/* recover smart switch src cap max current to 500mA */
 				sec_bat_smart_sw_src(battery, false, 500);
 				dev_info(battery->dev,
